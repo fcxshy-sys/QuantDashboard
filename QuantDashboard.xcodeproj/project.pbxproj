@@ -142,6 +142,7 @@
 				B80002 /* Info.plist */,
 				B80003 /* Entitlements.plist */,
 				B80004 /* Assets.xcassets */,
+				B70007 /* BackgroundImageView.swift */,
 				D10011 /* Models */,
 				D10012 /* IndicatorEngine */,
 				D10013 /* Network */,
@@ -220,7 +221,6 @@
 			children = (
 				B70001 /* ContentView.swift */,
 				B70006 /* LaunchScreen.swift */,
-				B70007 /* BackgroundImageView.swift */,
 				D10018 /* Dashboard */,
 				D10019 /* Charts */,
 				D1001A /* Panels */,
