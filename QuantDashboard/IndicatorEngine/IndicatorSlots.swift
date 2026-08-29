@@ -71,11 +71,12 @@ class CustomIndicator1: IndicatorBase {
     override func generateSignal(candles: [CandleData]) -> IndicatorResult {
         let closes = candles.map { $0.close }
         let results = calculate(candles: candles)
-        guard results.count >= 2, let latest = results.last, let prev = results[results.count - 2] else {
+        guard results.count >= 2, let latest = results.last else {
             return IndicatorResult(indicatorName: name, indicatorIndex: index,
                                    value: 0, signal: .neutral, strength: .weak,
                                    description: "数据不足")
         }
+        let prev = results[results.count - 2]
 
         let macdNow = latest.mainValue
         let sigNow = latest.secondaryValue ?? 0
@@ -278,12 +279,12 @@ class CustomIndicator2: IndicatorBase {
     override func generateSignal(candles: [CandleData]) -> IndicatorResult {
         let results = calculate(candles: candles)
         guard results.count >= 2,
-              let latest = results.last,
-              let prev = results[results.count - 2] else {
+              let latest = results.last else {
             return IndicatorResult(indicatorName: name, indicatorIndex: index,
                                    value: 0, signal: .neutral, strength: .weak,
                                    description: "数据不足")
         }
+        let prev = results[results.count - 2]
 
         let trend = Int(latest.secondaryValue ?? 0)
         let prevTrend = Int(prev.secondaryValue ?? 0)
@@ -597,12 +598,12 @@ class CustomIndicator4: IndicatorBase {
     override func generateSignal(candles: [CandleData]) -> IndicatorResult {
         let results = calculate(candles: candles)
         guard results.count >= 2,
-              let latest = results.last,
-              let prev = results[results.count - 2] else {
+              let latest = results.last else {
             return IndicatorResult(indicatorName: name, indicatorIndex: index,
                                    value: 0, signal: .neutral, strength: .weak,
                                    description: "数据不足")
         }
+        let prev = results[results.count - 2]
 
         let bias = latest.mainValue
         let conviction = latest.tertiaryValue ?? 0
@@ -735,12 +736,12 @@ class CustomIndicator5: IndicatorBase {
     override func generateSignal(candles: [CandleData]) -> IndicatorResult {
         let timePoints = calculate(candles: candles)
         guard timePoints.count >= 2,
-              let latest = timePoints.last,
-              let prev = timePoints[timePoints.count - 2] else {
+              let latest = timePoints.last else {
             return IndicatorResult(indicatorName: name, indicatorIndex: index,
                                    value: 0, signal: .neutral, strength: .weak,
                                    description: "数据不足")
         }
+        let prev = timePoints[timePoints.count - 2]
 
         let basis = latest.mainValue
         let score = Int(latest.secondaryValue ?? 0)

@@ -9,7 +9,7 @@ import CoreHaptics
 
 // MARK: - 本地告警管理器
 /// 管理指标告警的本地通知推送和触感反馈
-class LocalAlertManager {
+class LocalAlertManager: NSObject {
 
     // MARK: - 单例
     static let shared = LocalAlertManager()
@@ -18,7 +18,8 @@ class LocalAlertManager {
     private var hapticEngine: CHHapticEngine?
 
     // MARK: - 初始化
-    private init() {
+    private override init() {
+        super.init()
         setupNotifications()
         setupHapticEngine()
     }
