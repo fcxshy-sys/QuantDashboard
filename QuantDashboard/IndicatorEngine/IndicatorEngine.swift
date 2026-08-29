@@ -1,0 +1,84 @@
+// ============================================================
+// IndicatorEngine.swift
+// QuantDashboard - 指标引擎总调度器
+// ============================================================
+
+import Foundation
+import Combine
+
+// MARK: - 指标引擎调度器
+/// 统一管理所有指标的计算调度、参数配置和结果缓存
+class IndicatorEngine: ObservableObject {
+
+    // MARK: - 单例
+    static let shared = IndicatorEngine()
+
+    // MARK: - Published 状态
+    @Published var latestResults: [Int: IndicatorResult] = [:]     // 指标编号 → 最新结果
+    @Published var timeSeries: [Int: [IndicatorTimePoint]] = [:]   // 指标编号 → 时间序列
+    @Published var radarScore: RadarScore?
+
+    // MARK: - 核心组件
+    let radarEngine = SignalRadarEngine()
+
+    // MARK: - 指标实例列表
+    private(set) var indicators: [IndicatorProtocol] = []
+
+    // MARK: - 初始化
+    private init() {
+        indicators = [
+            CustomIndicator1(),
+            CustomIndicator2(),
+            CustomIndicator3(),
+            CustomIndicator4(),
+            CustomIndicator5(),
+        ]
+    }
+
+    // MARK: - 计算所有指标
+    /// 对给定 K 线数据执行所有已启用指标的计算
+    func computeAll(candles: [CandleData], asset: TradeAsset) {
+        guard !candles.isEmpty else { return }
+
+        var newResults: [Int: IndicatorResult] = [:]
+        var newTimeSeries: [Int: [IndicatorTimePoint]] = [:]
+
+        for indicator in indicators {
+            guard indicator.config.isEnabled else { continue }
+
+            let series = indicator.calculate(candles: candles)
+            let signal = indicator.generateSignal(candles: candles)
+
+            newResults[indicator.index] = signal
+            newTimeSeries[indicator.index] = series
+        }
+
+        // 计算雷达综合评分
+        let radar = radarEngine.evaluate(candles: candles, asset: asset)
+
+        // 更新到主线程
+        DispatchQueue.main.async { [weak self] in
+            self?.latestResults = newResults
+            self?.timeSeries = newTimeSeries
+            self?.radarScore = radar
+        }
+    }
+
+    // MARK: - 更新单个指标配置
+    func updateConfig(for index: Int, config: IndicatorConfig) {
+        guard index >= 0 && index < indicators.count else { return }
+        indicators[index].updateConfig(config)
+        radarEngine.updateIndicatorConfig(at: index, config: config)
+    }
+
+    // MARK: - 获取指标实例
+    func indicator(at index: Int) -> IndicatorProtocol? {
+        guard index >= 0 && index < indicators.count else { return nil }
+        return indicators[index]
+    }
+
+    // MARK: - 获取所有指标配置
+    func allConfigs() -> [IndicatorConfig] {
+        indicators.map { $0.config }
+    }
+}
