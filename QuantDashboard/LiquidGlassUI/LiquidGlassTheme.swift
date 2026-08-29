@@ -9,8 +9,6 @@ import SwiftUI
 struct LiquidGlassTheme {
 
     // MARK: - 背景层级
-    @Environment(\.colorScheme) static var colorScheme
-
     static var isDark: Bool { ThemeManager.shared.isDarkMode }
 
     static var backgroundGradient: LinearGradient {

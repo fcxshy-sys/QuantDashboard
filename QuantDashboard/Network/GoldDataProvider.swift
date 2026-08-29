@@ -92,7 +92,7 @@ class GoldDataProvider: ObservableObject {
     // MARK: - 东方财富历史K线
     func fetchHistoricalData(period: String = "101") {
         // period: 101=日K, 102=周K, 103=月K, 60=1分钟, 30=5分钟, 15=15分钟, 5=30分钟, 1=60分钟
-        var components = URLComponents(string: eastmoneyBase)!
+        guard var components = URLComponents(string: eastmoneyBase) else { return }
         components.queryItems = [
             URLQueryItem(name: "secid", value: "120.XAUUSD"),
             URLQueryItem(name: "fields1", value: "f1,f2,f3,f4,f5,f6"),
