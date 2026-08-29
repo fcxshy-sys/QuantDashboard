@@ -6,7 +6,7 @@
     <key>CFBundleName</key>
     <string>QuantDashboard</string>
     <key>CFBundleDisplayName</key>
-    <string>量化看板</string>
+    <string>9y看板</string>
     <key>CFBundleIdentifier</key>
     <string>com.quantdashboard.app</string>
     <key>CFBundleVersion</key>
@@ -71,7 +71,7 @@
 
     <!-- 本地通知权限 -->
     <key>UIUserNotificationsUsageDescription</key>
-    <string>量化看板需要通知权限，在指标产生共振信号时向您发送本地告警通知。</string>
+    <string>9y看板需要通知权限，在指标产生共振信号时向您发送本地告警通知。</string>
 
     <!-- 后台音频描述 -->
     <key>UIBackgroundModesDescription</key>

@@ -65,7 +65,7 @@ class BitgetWebSocketManager: NSObject, ObservableObject {
     }
 
     private func subscribeStreams(_ streams: [String]) {
-        let args = streams.map { stream -> [String: String] in
+        let args = streams.map { stream -> [String: Any] in
             let parts = stream.split(separator: "_")
             if parts.count >= 2 {
                 return ["op": "subscribe", "args": [["channel": "\(parts[0])_\(parts[1])", "instType": "SPOT", "instId": String(parts[2])]]]

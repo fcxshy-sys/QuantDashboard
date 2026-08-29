@@ -99,7 +99,10 @@ struct SettingsView: View {
     private var exchangeCard: some View {
         GlassCard(title: "数据源", icon: "arrow.triangle.2.circlepath") {
             VStack(spacing: 12) {
-                exchangeRow(label: "主数据源", selection: $primaryExchange)
+                exchangeRow(label: "主数据源", selection: Binding(
+                    get: { primaryExchange },
+                    set: { primaryExchange = $0 ?? .binance }
+                ))
                 exchangeRow(label: "备用 1", selection: Binding(
                     get: { fallback1 },
                     set: { fallback1 = $0 }
