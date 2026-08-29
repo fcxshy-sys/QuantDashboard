@@ -206,6 +206,7 @@
 			children = (
 				B70001 /* ContentView.swift */,
 				B70006 /* LaunchScreen.swift */,
+				B70007 /* BackgroundImageView.swift */,
 				D10018 /* Dashboard */,
 				D10019 /* Charts */,
 				D1001A /* Panels */,
