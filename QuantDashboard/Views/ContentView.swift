@@ -10,6 +10,7 @@ struct ContentView: View {
 
     @StateObject private var marketVM = MarketViewModel()
     @StateObject private var indicatorVM = IndicatorViewModel()
+    @StateObject private var themeManager = ThemeManager.shared
 
     @State private var selectedTab: Tab = .dashboard
     @State private var showAssetPicker = false
@@ -23,7 +24,10 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            // 底层背景
+            // 底层背景图
+            BackgroundImageView()
+
+            // 渐变覆盖
             LiquidGlassTheme.backgroundGradient
                 .ignoresSafeArea()
 
@@ -51,7 +55,7 @@ struct ContentView: View {
                 bottomTabBar
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(themeManager.isDarkMode ? .dark : .light)
         .onAppear {
             LocalAlertManager.shared.requestPermission()
             marketVM.start()

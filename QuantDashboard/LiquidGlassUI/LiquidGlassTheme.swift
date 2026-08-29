@@ -6,57 +6,101 @@
 import SwiftUI
 
 // MARK: - 液态玻璃主题
-/// 统一管理 Liquid Glass 设计系统的颜色、材质、阴影参数
 struct LiquidGlassTheme {
 
     // MARK: - 背景层级
-    /// 主背景：Ultra-Dark OLED 深邃渐变
-    static let backgroundGradient = LinearGradient(
-        colors: [
-            Color(red: 0.02, green: 0.02, blue: 0.05),
-            Color(red: 0.05, green: 0.03, blue: 0.08),
-            Color(red: 0.01, green: 0.01, blue: 0.03)
-        ],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
+    @Environment(\.colorScheme) static var colorScheme
 
-    /// 次级背景
-    static let secondaryBackground = Color.black.opacity(0.6)
+    static var isDark: Bool { ThemeManager.shared.isDarkMode }
+
+    static var backgroundGradient: LinearGradient {
+        if isDark {
+            return LinearGradient(
+                colors: [
+                    Color(red: 0.02, green: 0.02, blue: 0.05),
+                    Color(red: 0.05, green: 0.03, blue: 0.08),
+                    Color(red: 0.01, green: 0.01, blue: 0.03)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        } else {
+            return LinearGradient(
+                colors: [
+                    Color(red: 0.95, green: 0.95, blue: 0.97),
+                    Color(red: 0.90, green: 0.92, blue: 0.96),
+                    Color(red: 0.93, green: 0.94, blue: 0.97)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
+
+    static var secondaryBackground: Color {
+        isDark ? Color.black.opacity(0.6) : Color.white.opacity(0.6)
+    }
 
     // MARK: - 玻璃材质颜色
-    /// 玻璃卡片填充色（超薄材质）
-    static let glassFill = Color.white.opacity(0.05)
-    static let glassFillHover = Color.white.opacity(0.08)
-    static let glassStroke = Color.white.opacity(0.12)
-    static let glassStrokeHighlight = Color.white.opacity(0.25)
+    static var glassFill: Color {
+        isDark ? Color.white.opacity(0.05) : Color.black.opacity(0.03)
+    }
+    static var glassStroke: Color {
+        isDark ? Color.white.opacity(0.12) : Color.black.opacity(0.08)
+    }
 
     // MARK: - 液态边缘折射光泽
-    /// 顶部高光渐变（模拟光源折射）
-    static let refractionGradient = LinearGradient(
-        colors: [
-            Color.white.opacity(0.20),
-            Color.white.opacity(0.05),
-            Color.clear
-        ],
-        startPoint: .top,
-        endPoint: .bottom
-    )
+    static var refractionGradient: LinearGradient {
+        if isDark {
+            return LinearGradient(
+                colors: [
+                    Color.white.opacity(0.20),
+                    Color.white.opacity(0.05),
+                    Color.clear
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        } else {
+            return LinearGradient(
+                colors: [
+                    Color.white.opacity(0.60),
+                    Color.white.opacity(0.20),
+                    Color.clear
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
+    }
 
-    /// 液态边缘描边渐变
-    static let liquidBorderGradient = LinearGradient(
-        colors: [
-            Color.white.opacity(0.30),
-            Color.white.opacity(0.10),
-            Color.white.opacity(0.05),
-            Color.white.opacity(0.15)
-        ],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-    )
+    static var liquidBorderGradient: LinearGradient {
+        if isDark {
+            return LinearGradient(
+                colors: [
+                    Color.white.opacity(0.30),
+                    Color.white.opacity(0.10),
+                    Color.white.opacity(0.05),
+                    Color.white.opacity(0.15)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        } else {
+            return LinearGradient(
+                colors: [
+                    Color.black.opacity(0.15),
+                    Color.black.opacity(0.05),
+                    Color.black.opacity(0.02),
+                    Color.black.opacity(0.08)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        }
+    }
 
     // MARK: - 多空动态流光颜色
-    /// 多头（看多）绿色流光
     static let bullishGlow = Color(red: 0.0, green: 0.85, blue: 0.60).opacity(0.15)
     static let bullishAccent = Color(red: 0.0, green: 0.85, blue: 0.60)
     static let bullishGradient = LinearGradient(
@@ -68,7 +112,6 @@ struct LiquidGlassTheme {
         endPoint: .bottom
     )
 
-    /// 空头（看空）红色流光
     static let bearishGlow = Color(red: 0.95, green: 0.25, blue: 0.30).opacity(0.15)
     static let bearishAccent = Color(red: 0.95, green: 0.25, blue: 0.30)
     static let bearishGradient = LinearGradient(
@@ -80,23 +123,21 @@ struct LiquidGlassTheme {
         endPoint: .bottom
     )
 
-    /// 中性蓝色流光
     static let neutralGlow = Color(red: 0.3, green: 0.5, blue: 0.9).opacity(0.12)
     static let neutralAccent = Color(red: 0.3, green: 0.5, blue: 0.9)
 
     // MARK: - 文字颜色
-    static let primaryText = Color.white
-    static let secondaryText = Color.white.opacity(0.6)
-    static let tertiaryText = Color.white.opacity(0.35)
-    static let mutedText = Color.white.opacity(0.2)
+    static var primaryText: Color { isDark ? Color.white : Color.black }
+    static var secondaryText: Color { isDark ? Color.white.opacity(0.6) : Color.black.opacity(0.6) }
+    static var tertiaryText: Color { isDark ? Color.white.opacity(0.35) : Color.black.opacity(0.35) }
+    static var mutedText: Color { isDark ? Color.white.opacity(0.2) : Color.black.opacity(0.2) }
 
     // MARK: - 阴影参数
-    static let cardShadow = Color.black.opacity(0.5)
+    static var cardShadow: Color { isDark ? Color.black.opacity(0.5) : Color.gray.opacity(0.3) }
     static let cardShadowRadius: CGFloat = 20
     static let cardShadowY: CGFloat = 8
 
-    /// 内发光颜色
-    static let innerGlow = Color.white.opacity(0.05)
+    static var innerGlow: Color { isDark ? Color.white.opacity(0.05) : Color.black.opacity(0.03) }
 
     // MARK: - 评分环渐变
     static func radarGradient(for score: Double) -> AngularGradient {
@@ -133,12 +174,12 @@ struct LiquidGlassTheme {
 extension TradeAsset {
     var themeColor: Color {
         switch self {
-        case .btcUSDT: return Color(red: 0.99, green: 0.60, blue: 0.15)  // 橙色
-        case .ethUSDT: return Color(red: 0.40, green: 0.45, blue: 0.90)  // 蓝紫色
-        case .solUSDT: return Color(red: 0.80, green: 0.15, blue: 0.90)  // 紫色
-        case .bnbUSDT: return Color(red: 0.95, green: 0.75, blue: 0.15)  // 金黄色
-        case .xrpUSDT: return Color(red: 0.20, green: 0.40, blue: 0.90)  // 蓝色
-        case .xauUSD:  return Color(red: 1.00, green: 0.82, blue: 0.00)  // 金色
+        case .btcUSDT: return Color(red: 0.99, green: 0.60, blue: 0.15)
+        case .ethUSDT: return Color(red: 0.40, green: 0.45, blue: 0.90)
+        case .solUSDT: return Color(red: 0.80, green: 0.15, blue: 0.90)
+        case .bnbUSDT: return Color(red: 0.95, green: 0.75, blue: 0.15)
+        case .xrpUSDT: return Color(red: 0.20, green: 0.40, blue: 0.90)
+        case .xauUSD:  return Color(red: 1.00, green: 0.82, blue: 0.00)
         }
     }
 }

@@ -22,9 +22,12 @@
 		A30001 /* BinanceWebSocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30001; };
 		A30002 /* GoldDataProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30002; };
 		A30003 /* DataPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30003; };
+		A30004 /* BitgetWebSocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30004; };
+		A30005 /* GateIOWebSocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30005; };
 
 		/* Services */
 		A40001 /* LocalAlertManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40001; };
+		A40002 /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B40002; };
 
 		/* LiquidGlassUI */
 		A50001 /* LiquidGlassTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B50001; };
@@ -43,6 +46,7 @@
 		A70004 /* IndicatorPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B70004; };
 		A70005 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B70005; };
 		A70006 /* LaunchScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = B70006; };
+		A70007 /* BackgroundImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B70007; };
 
 		/* App */
 		A80001 /* QuantDashboardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B80001; };
@@ -64,9 +68,12 @@
 		B30001 /* BinanceWebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinanceWebSocketManager.swift; sourceTree = "<group>"; };
 		B30002 /* GoldDataProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoldDataProvider.swift; sourceTree = "<group>"; };
 		B30003 /* DataPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataPipeline.swift; sourceTree = "<group>"; };
+		B30004 /* BitgetWebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitgetWebSocketManager.swift; sourceTree = "<group>"; };
+		B30005 /* GateIOWebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GateIOWebSocketManager.swift; sourceTree = "<group>"; };
 
 		/* Services */
 		B40001 /* LocalAlertManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAlertManager.swift; sourceTree = "<group>"; };
+		B40002 /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
 
 		/* LiquidGlassUI */
 		B50001 /* LiquidGlassTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassTheme.swift; sourceTree = "<group>"; };
@@ -85,6 +92,7 @@
 		B70004 /* IndicatorPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorPanelView.swift; sourceTree = "<group>"; };
 		B70005 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B70006 /* LaunchScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchScreen.swift; sourceTree = "<group>"; };
+		B70007 /* BackgroundImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundImageView.swift; sourceTree = "<group>"; };
 
 		/* App */
 		B80001 /* QuantDashboardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuantDashboardApp.swift; sourceTree = "<group>"; };
@@ -158,6 +166,8 @@
 				B30001 /* BinanceWebSocketManager.swift */,
 				B30002 /* GoldDataProvider.swift */,
 				B30003 /* DataPipeline.swift */,
+				B30004 /* BitgetWebSocketManager.swift */,
+				B30005 /* GateIOWebSocketManager.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -166,6 +176,7 @@
 			isa = PBXGroup;
 			children = (
 				B40001 /* LocalAlertManager.swift */,
+				B40002 /* ThemeManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -312,7 +323,10 @@
 				A30001 /* BinanceWebSocketManager.swift */,
 				A30002 /* GoldDataProvider.swift */,
 				A30003 /* DataPipeline.swift */,
+				A30004 /* BitgetWebSocketManager.swift */,
+				A30005 /* GateIOWebSocketManager.swift */,
 				A40001 /* LocalAlertManager.swift */,
+				A40002 /* ThemeManager.swift */,
 				A50001 /* LiquidGlassTheme.swift */,
 				A50002 /* LiquidGlassModifier.swift */,
 				A50003 /* GlassCard.swift */,
@@ -325,6 +339,7 @@
 				A70004 /* IndicatorPanelView.swift */,
 				A70005 /* SettingsView.swift */,
 				A70006 /* LaunchScreen.swift */,
+				A70007 /* BackgroundImageView.swift */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

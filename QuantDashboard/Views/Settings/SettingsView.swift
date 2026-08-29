@@ -16,17 +16,27 @@ struct SettingsView: View {
     @State private var editSensitivity: Double = 1.0
     @State private var editWeight: Double = 0.2
 
+    @StateObject private var themeManager = ThemeManager.shared
+    @State private var primaryExchange: ExchangeType = .binance
+    @State private var fallback1: ExchangeType? = .bitget
+    @State private var fallback2: ExchangeType? = .gateIO
+
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 16) {
-                // 标题
                 HStack {
-                    Text("指标配置")
+                    Text("设置")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(LiquidGlassTheme.primaryText)
                     Spacer()
                 }
                 .padding(.horizontal, 4)
+
+                // 主题切换
+                themeCard
+
+                // 交易所数据源
+                exchangeCard
 
                 // 指标参数配置卡片
                 ForEach(1...5, id: \.self) { index in
@@ -58,15 +68,83 @@ struct SettingsView: View {
                     )
                 }
 
-                // 共振阈值设置
                 resonanceThresholdCard
-
-                // 关于信息
                 aboutCard
             }
             .padding(.horizontal, 16)
             .padding(.top, 8)
             .padding(.bottom, 100)
+        }
+    }
+
+    // MARK: - 主题切换卡片
+    private var themeCard: some View {
+        GlassCard(title: "外观", icon: "paintbrush") {
+            HStack {
+                Text("深色模式")
+                    .font(.system(size: 14))
+                    .foregroundStyle(LiquidGlassTheme.primaryText)
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { themeManager.isDarkMode },
+                    set: { _ in themeManager.toggle() }
+                ))
+                .tint(LiquidGlassTheme.neutralAccent)
+                .labelsHidden()
+            }
+        }
+    }
+
+    // MARK: - 交易所数据源卡片
+    private var exchangeCard: some View {
+        GlassCard(title: "数据源", icon: "arrow.triangle.2.circlepath") {
+            VStack(spacing: 12) {
+                exchangeRow(label: "主数据源", selection: $primaryExchange)
+                exchangeRow(label: "备用 1", selection: Binding(
+                    get: { fallback1 },
+                    set: { fallback1 = $0 }
+                ))
+                exchangeRow(label: "备用 2", selection: Binding(
+                    get: { fallback2 },
+                    set: { fallback2 = $0 }
+                ))
+
+                Button {
+                    let config = DataSourceConfig(
+                        primary: primaryExchange,
+                        fallback1: fallback1,
+                        fallback2: fallback2
+                    )
+                    DataPipeline.shared.updateDataSource(config)
+                    DataPipeline.shared.switchAsset(to: DataPipeline.shared.currentAsset)
+                } label: {
+                    Text("应用并重连")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Capsule().fill(LiquidGlassTheme.neutralAccent))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func exchangeRow(label: String, selection: Binding<ExchangeType?>) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 13))
+                .foregroundStyle(LiquidGlassTheme.secondaryText)
+                .frame(width: 60, alignment: .leading)
+            Spacer()
+            Picker("", selection: selection) {
+                Text("无").tag(nil as ExchangeType?)
+                ForEach(ExchangeType.allCases) { ex in
+                    Text(ex.displayName).tag(ex as ExchangeType?)
+                }
+            }
+            .pickerStyle(.menu)
+            .tint(LiquidGlassTheme.primaryText)
         }
     }
 

@@ -1,6 +1,6 @@
 // ============================================================
 // KLineChartView.swift
-// QuantDashboard - K 线图表视图（轻量级自绘 Canvas）
+// QuantDashboard - K 线图表视图（Canvas 自绘 + 手势）
 // ============================================================
 
 import SwiftUI
@@ -15,28 +15,48 @@ struct KLineChartView: View {
     @State private var selectedCandle: CandleData? = nil
     @State private var showCrosshair: Bool = false
 
+    @State private var zoomLevel: CGFloat = 1.0
+    @State private var scrollOffset: CGFloat = 0
+    @State private var lastScrollOffset: CGFloat = 0
+    @State private var lastZoomScale: CGFloat = 1.0
+
+    private let minVisibleCandles = 20
+    private let maxVisibleCandles = 200
+
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 16) {
-                // 周期选择器
                 intervalSelector
-
-                // 价格信息栏
                 priceInfoBar
-
-                // K 线主图
                 kLineMainChart
-
-                // 成交量副图
                 volumeChart
-
-                // 副图指标区
                 indicatorSubCharts
             }
             .padding(.horizontal, 16)
             .padding(.top, 8)
             .padding(.bottom, 100)
         }
+    }
+
+    // MARK: - 可见 K 线数量
+    private var visibleCount: Int {
+        let base: CGFloat = 60
+        let count = Int(base / zoomLevel)
+        return min(max(count, minVisibleCandles), maxVisibleCandles)
+    }
+
+    // MARK: - 可见 K 线数组
+    private func getVisibleCandles(from candles: [CandleData]) -> [CandleData] {
+        guard !candles.isEmpty else { return [] }
+        let total = candles.count
+        let count = min(visibleCount, total)
+
+        let maxOffset = max(0, total - count)
+        let offset = Int(-scrollOffset / 10)
+        let safeOffset = min(max(offset, 0), maxOffset)
+
+        let start = total - count - safeOffset
+        return Array(candles[max(start, 0)..<min(start + count, total)])
     }
 
     // MARK: - 周期选择器
@@ -51,6 +71,7 @@ struct KLineChartView: View {
                     ) {
                         withAnimation(.spring(response: 0.3)) {
                             marketVM.switchInterval(to: interval)
+                            scrollOffset = 0
                         }
                     }
                 }
@@ -91,33 +112,28 @@ struct KLineChartView: View {
         .frame(maxWidth: .infinity)
     }
 
-    // MARK: - K 线主图（Canvas 自绘）
+    // MARK: - K 线主图
     private var kLineMainChart: some View {
         let candles = marketVM.candles
-        let visibleCount = min(candles.count, 80)
-        let visibleCandles = Array(candles.suffix(visibleCount))
+        let visibleCandles = getVisibleCandles(from: candles)
 
         return GlassCard(title: "K线图", icon: "chart.xyaxis.line") {
             VStack(spacing: 0) {
-                // 主图 Canvas
                 GeometryReader { geo in
                     let size = geo.size
                     let priceMin = visibleCandles.map(\.low).min() ?? 0
                     let priceMax = visibleCandles.map(\.high).max() ?? 1
                     let priceRange = priceMax - priceMin
-                    let candleWidth = size.width / CGFloat(visibleCount)
+                    let candleWidth = size.width / CGFloat(visibleCandles.count)
                     let bodyWidth = max(candleWidth * 0.7, 2)
 
                     ZStack {
-                        // 背景网格
                         gridLines(in: size, priceMin: priceMin, priceMax: priceMax)
 
-                        // K 线绘制
                         Canvas { context, canvasSize in
                             for (i, candle) in visibleCandles.enumerated() {
                                 let x = CGFloat(i) * candleWidth + candleWidth / 2
 
-                                // 价格 → Y 坐标映射
                                 func y(_ price: Double) -> CGFloat {
                                     let ratio = priceRange > 0
                                         ? (price - priceMin) / priceRange : 0.5
@@ -132,13 +148,11 @@ struct KLineChartView: View {
                                     ? LiquidGlassTheme.bullishAccent
                                     : LiquidGlassTheme.bearishAccent
 
-                                // 上下影线
                                 var shadowPath = Path()
                                 shadowPath.move(to: CGPoint(x: x, y: y(candle.high)))
                                 shadowPath.addLine(to: CGPoint(x: x, y: y(candle.low)))
                                 context.stroke(shadowPath, with: .color(color.opacity(0.6)), lineWidth: 1)
 
-                                // 实体
                                 let bodyRect = CGRect(
                                     x: x - bodyWidth / 2,
                                     y: bodyTop,
@@ -151,7 +165,6 @@ struct KLineChartView: View {
                         }
                         .frame(width: size.width, height: size.height)
 
-                        // 十字光标
                         if showCrosshair, let pos = crosshairPosition {
                             crosshairView(at: pos, size: size,
                                          visibleCandles: visibleCandles,
@@ -162,16 +175,46 @@ struct KLineChartView: View {
                     .gesture(
                         DragGesture(minimumDistance: 0)
                             .onChanged { value in
-                                crosshairPosition = value.location
-                                showCrosshair = true
-                                let index = Int(value.location.x / candleWidth)
-                                if index >= 0 && index < visibleCandles.count {
-                                    selectedCandle = visibleCandles[index]
+                                if showCrosshair {
+                                    crosshairPosition = value.location
+                                    let index = Int(value.location.x / candleWidth)
+                                    if index >= 0 && index < visibleCandles.count {
+                                        selectedCandle = visibleCandles[index]
+                                    }
+                                } else {
+                                    let delta = value.translation.width - lastScrollOffset
+                                    scrollOffset += delta
+                                    lastScrollOffset = value.translation.width
                                 }
                             }
                             .onEnded { _ in
-                                showCrosshair = false
-                                selectedCandle = nil
+                                if showCrosshair {
+                                    showCrosshair = false
+                                    selectedCandle = nil
+                                }
+                                lastScrollOffset = 0
+                            }
+                    )
+                    .gesture(
+                        MagnificationGesture()
+                            .onChanged { scale in
+                                let delta = scale / lastZoomScale
+                                zoomLevel = min(max(zoomLevel * delta, 0.3), 5.0)
+                                lastZoomScale = scale
+                            }
+                            .onEnded { _ in
+                                lastZoomScale = 1.0
+                            }
+                    )
+                    .simultaneousGesture(
+                        LongPressGesture(minimumDuration: 0.3)
+                            .onEnded { _ in
+                                withAnimation(.easeInOut(duration: 0.15)) {
+                                    showCrosshair.toggle()
+                                    if !showCrosshair {
+                                        selectedCandle = nil
+                                    }
+                                }
                             }
                     )
                 }
@@ -205,33 +248,26 @@ struct KLineChartView: View {
             ? priceMax - Double(pos.y / size.height) * priceRange : 0
 
         return ZStack {
-            // 水平线
             Path { path in
                 path.move(to: CGPoint(x: 0, y: pos.y))
                 path.addLine(to: CGPoint(x: size.width, y: pos.y))
             }
             .stroke(Color.white.opacity(0.3), style: StrokeStyle(lineWidth: 0.5, dash: [4, 4]))
 
-            // 垂直线
             Path { path in
                 path.move(to: CGPoint(x: pos.x, y: 0))
                 path.addLine(to: CGPoint(x: pos.x, y: size.height))
             }
             .stroke(Color.white.opacity(0.3), style: StrokeStyle(lineWidth: 0.5, dash: [4, 4]))
 
-            // 价格标签
             Text(String(format: "%.2f", priceAtCursor))
                 .font(.system(size: 10, weight: .bold, design: .monospaced))
                 .foregroundStyle(.white)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 3)
-                .background(
-                    Capsule()
-                        .fill(Color.black.opacity(0.8))
-                )
+                .background(Capsule().fill(Color.black.opacity(0.8)))
                 .position(x: size.width - 35, y: pos.y)
 
-            // 交叉点圆圈
             Circle()
                 .fill(Color.white)
                 .frame(width: 6, height: 6)
@@ -242,14 +278,13 @@ struct KLineChartView: View {
     // MARK: - 成交量图
     private var volumeChart: some View {
         let candles = marketVM.candles
-        let visibleCount = min(candles.count, 80)
-        let visibleCandles = Array(candles.suffix(visibleCount))
+        let visibleCandles = getVisibleCandles(from: candles)
 
         return GlassCard(title: "成交量", icon: "chart.bar.fill") {
             GeometryReader { geo in
                 let size = geo.size
                 let maxVol = visibleCandles.map(\.volume).max() ?? 1
-                let candleWidth = size.width / CGFloat(visibleCount)
+                let candleWidth = size.width / CGFloat(visibleCandles.count)
                 let barWidth = max(candleWidth * 0.7, 2)
 
                 Canvas { context, canvasSize in
