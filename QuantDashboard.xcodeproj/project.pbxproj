@@ -50,6 +50,7 @@
 
 		/* App */
 		A80001 /* QuantDashboardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B80001; };
+		A80004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B80004; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -98,6 +99,7 @@
 		B80001 /* QuantDashboardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuantDashboardApp.swift; sourceTree = "<group>"; };
 		B80002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B80003 /* Entitlements.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Entitlements.plist; sourceTree = "<group>"; };
+		B80004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 
 		/* Product */
 		B90001 /* QuantDashboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuantDashboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -112,6 +114,17 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E20002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A80004 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXGroup section */
 		D10001 = {
@@ -128,6 +141,7 @@
 				B80001 /* QuantDashboardApp.swift */,
 				B80002 /* Info.plist */,
 				B80003 /* Entitlements.plist */,
+				B80004 /* Assets.xcassets */,
 				D10011 /* Models */,
 				D10012 /* IndicatorEngine */,
 				D10013 /* Network */,
@@ -264,6 +278,7 @@
 			buildPhases = (
 				E20001 /* Sources */,
 				C10001 /* Frameworks */,
+				E20002 /* Resources */,
 			);
 			buildRules = (
 			);
