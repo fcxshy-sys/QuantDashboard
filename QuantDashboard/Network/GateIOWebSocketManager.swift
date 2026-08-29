@@ -66,8 +66,9 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
         for stream in streams {
             let parts = stream.split(separator: "_")
             guard parts.count >= 2 else { continue }
-            let channel = String(parts[0])
-            let pair = String(parts[1])
+
+            let pair = String(parts.last!)
+            var channel = parts.dropLast().joined(separator: "_")
 
             let sub: [String: Any] = [
                 "time": Int(Date().timeIntervalSince1970),

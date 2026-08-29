@@ -65,15 +65,23 @@ class BitgetWebSocketManager: NSObject, ObservableObject {
     }
 
     private func subscribeStreams(_ streams: [String]) {
-        let args = streams.map { stream -> [String: Any] in
+        for stream in streams {
             let parts = stream.split(separator: "_")
-            if parts.count >= 2 {
-                return ["op": "subscribe", "args": [["channel": "\(parts[0])_\(parts[1])", "instType": "SPOT", "instId": String(parts[2])]]]
-            }
-            return ["op": "subscribe", "args": [["channel": stream, "instType": "SPOT", "instId": "BTCUSDT"]]]
-        }
+            var channel: String
+            var instId: String
 
-        for arg in args {
+            if parts.count >= 3 {
+                channel = parts.dropLast().joined(separator: "_")
+                instId = String(parts.last!)
+            } else if parts.count == 2 {
+                channel = String(parts[0])
+                instId = String(parts[1])
+            } else {
+                channel = stream
+                instId = "BTCUSDT"
+            }
+
+            let arg: [String: Any] = ["op": "subscribe", "args": [["channel": channel, "instType": "SPOT", "instId": instId]]]
             guard let data = try? JSONSerialization.data(withJSONObject: arg),
                   let str = String(data: data, encoding: .utf8) else { continue }
             webSocket?.send(.string(str)) { error in

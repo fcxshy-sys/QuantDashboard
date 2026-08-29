@@ -5,7 +5,6 @@
 
 import SwiftUI
 
-// MARK: - 背景图视图
 struct BackgroundImageView: View {
 
     @State private var currentImageIndex = 0
@@ -18,7 +17,7 @@ struct BackgroundImageView: View {
                 .scaledToFill()
                 .frame(width: geo.size.width, height: geo.size.height)
                 .clipped()
-                .opacity(0.15)
+                .opacity(0.3)
                 .ignoresSafeArea()
                 .animation(.easeInOut(duration: 1.5), value: currentImageIndex)
                 .onAppear {
@@ -28,7 +27,7 @@ struct BackgroundImageView: View {
     }
 
     private func startSlideshow() {
-        Timer.scheduledTimer(withTimeInterval: 8, repeats: true) { _ in
+        Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { _ in
             withAnimation {
                 currentImageIndex = (currentImageIndex + 1) % imageNames.count
             }

@@ -10,7 +10,7 @@ struct ContentView: View {
 
     @StateObject private var marketVM = MarketViewModel()
     @StateObject private var indicatorVM = IndicatorViewModel()
-    @StateObject private var themeManager = ThemeManager.shared
+    @ObservedObject private var themeManager = ThemeManager.shared
 
     @State private var selectedTab: Tab = .dashboard
     @State private var showAssetPicker = false

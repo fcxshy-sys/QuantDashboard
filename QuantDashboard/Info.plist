@@ -81,7 +81,7 @@
     <key>MinimumOSVersion</key>
     <string>15.0</string>
 
-    <!-- 支持暗色模式 -->
+    <!-- 强制深色模式 -->
     <key>UIUserInterfaceStyle</key>
     <string>Dark</string>
 
