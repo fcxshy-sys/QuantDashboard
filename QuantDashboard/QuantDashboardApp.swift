@@ -1,31 +1,16 @@
 import SwiftUI
 
-// MARK: - Global Crash Handler
-private var crashLog: String = ""
-private var crashTimestamp: String = ""
-
-private func installCrashHandlers() {
-    // NSException handler (ObjC crashes)
-    NSSetUncaughtExceptionHandler { exception in
-        let info = "\(exception.name.rawValue): \(exception.reason ?? "unknown")\n\(exception.callStackSymbols.joined(separator: "\n"))"
-        saveCrashLog(info)
-    }
-
-    // Signal handlers (Swift runtime crashes: SIGABRT, SIGSEGV, SIGBUS, SIGFPE, SIGILL)
-    let signals: [Int32] = [SIGABRT, SIGSEGV, SIGBUS, SIGFPE, SIGILL]
-    for sig in signals {
-        signal(sig) { s in
-            let info = "Signal \(s) received\nThread: \(Thread.callStackSymbols.joined(separator: "\n"))"
-            saveCrashLog(info)
-            _exit(s)
+// MARK: - Global Crash Handler (async-signal-safe)
+private func saveCrashLogAsyncSafe(_ text: String) {
+    // Use POSIX write() — the ONLY async-signal-safe I/O function
+    let path = NSTemporaryDirectory() + "/crash_log.txt"
+    let fd = path.withCString { open($0, O_WRONLY | O_CREAT | O_TRUNC, 0o644) }
+    if fd >= 0 {
+        text.withCString { ptr in
+            _ = write(fd, ptr, strlen(ptr))
         }
+        _ = close(fd)
     }
-}
-
-private func saveCrashLog(_ info: String) {
-    let ts = ISO8601DateFormatter().string(from: Date())
-    UserDefaults.standard.set("[\(ts)] \(info)", forKey: "lastCrashLog")
-    UserDefaults.standard.synchronize()
 }
 
 @main
@@ -35,14 +20,25 @@ struct QuantDashboardApp: App {
     @State private var lastCrashInfo: String = ""
 
     init() {
-        installCrashHandlers()
+        // NSUncaughtExceptionHandler — catches ObjC exceptions (async-signal-safe for single-thread)
+        NSSetUncaughtExceptionHandler { exception in
+            let info = "\(exception.name.rawValue): \(exception.reason ?? "unknown")\n\(exception.callStackSymbols.joined(separator: "\n"))"
+            saveCrashLogAsyncSafe(info)
+        }
+
+        // NO signal() handlers — they deadlock on UserDefaults and cause SIGKILL
+        // iOS generates .ips crash reports automatically in Settings > Privacy > Analytics
+
+        // Clear URL cache
         URLCache.shared.removeAllCachedResponses()
 
-        // Check for previous crash
-        if let log = UserDefaults.standard.string(forKey: "lastCrashLog"), !log.isEmpty {
+        // Check for previous crash (from NSSetUncaughtExceptionHandler)
+        let crashPath = NSTemporaryDirectory() + "/crash_log.txt"
+        if let data = FileManager.default.contents(atPath: crashPath),
+           let log = String(data: data, encoding: .utf8), !log.isEmpty {
             lastCrashInfo = log
             showCrashLog = true
-            UserDefaults.standard.removeObject(forKey: "lastCrashLog")
+            try? FileManager.default.removeItem(atPath: crashPath)
         }
     }
 
@@ -65,7 +61,7 @@ struct QuantDashboardApp: App {
                     }
                 }
             }
-            .alert("上次崩溃日志", isPresented: $showCrashLog) {
+            .alert("崩溃日志", isPresented: $showCrashLog) {
                 Button("确定", role: .cancel) { }
             } message: {
                 Text(lastCrashInfo)

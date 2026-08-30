@@ -93,6 +93,10 @@ class DataPipeline: ObservableObject {
             self.isLoading = true
         }
 
+        // Clean up old WebSocket first
+        gateWS?.disconnect()
+        gateWS = nil
+
         // Create fresh WebSocket manager for each connection
         let ws = GateIOWebSocketManager()
 
