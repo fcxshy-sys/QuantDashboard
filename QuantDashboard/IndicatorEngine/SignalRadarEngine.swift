@@ -90,7 +90,10 @@ class SignalRadarEngine: ObservableObject {
         }
         lock.unlock()
 
-        let finalScore = max(-100, min(100, weightedSum))
+        let finalScore: Double = {
+            let s = max(-100, min(100, weightedSum))
+            return s.isFinite ? s : 0
+        }()
 
         // 计算共振方向
         let bullCount = directions.filter { $0 == .bullish }.count

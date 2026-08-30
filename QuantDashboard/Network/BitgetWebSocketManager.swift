@@ -210,7 +210,8 @@ class BitgetWebSocketManager: NSObject, ObservableObject {
         let low24 = Double("\(raw["low24h"] ?? "0")") ?? 0
         let vol24 = Double("\(raw["baseVolume"] ?? "0")") ?? 0
         let change = Double("\(raw["change24h"] ?? "0")") ?? 0
-        let changePct = last > 0 ? (change / (last - change)) * 100 : 0
+        let denominator = last - change
+        let changePct = last > 0 && denominator != 0 ? (change / denominator) * 100 : 0
 
         let ticker = Ticker24h(
             symbol: instId, lastPrice: last,

@@ -63,7 +63,7 @@ class IndicatorBase: IndicatorProtocol {
 
     /// 计算简单移动平均线 SMA
     func sma(_ values: [Double], period: Int) -> [Double?] {
-        guard values.count >= period else {
+        guard period > 0, values.count >= period else {
             return Array(repeating: nil, count: values.count)
         }
         var result: [Double?] = Array(repeating: nil, count: values.count)

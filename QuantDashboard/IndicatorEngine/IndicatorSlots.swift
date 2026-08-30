@@ -18,8 +18,8 @@ class CustomIndicator1: IndicatorBase {
 
     // MACD 参数
     var fastLength: Int { max(config.period, 2) }       // 快线周期，默认 12
-    var slowLength: Int { Int(config.threshold) }        // 慢线周期，默认 26
-    var signalLength: Int { Int(config.sensitivity * 9) } // 信号线平滑，默认 9
+    var slowLength: Int { max(Int(config.threshold), 2) }        // 慢线周期，默认 26
+    var signalLength: Int { max(Int(config.sensitivity * 9), 1) } // 信号线平滑，默认 9
     // RSI 参数
     var rsiPeriod: Int { 14 }
     var overbought: Double { 70 }
@@ -162,7 +162,7 @@ class CustomIndicator2: IndicatorBase {
     // 参数
     var baseCutoff: Int { max(config.period, 4) }      // 基础截止周期，默认 20
     var dampingFactor: Double { 1.414 }                  // 阻尼系数 √2
-    var adaptLookback: Int { Int(config.threshold) }     // 自适应回看窗口，默认 32
+    var adaptLookback: Int { max(Int(config.threshold), 2) }     // 自适应回看窗口，默认 32
     var adaptStrength: Double { config.sensitivity }     // 自适应强度，默认 0.55
     var minCutoffMult: Double { 0.55 }
     var maxCutoffMult: Double { 2.25 }
@@ -661,7 +661,7 @@ class CustomIndicator5: IndicatorBase {
     // 零迟滞参数
     var zlLength: Int { max(config.period, 1) }         // 零迟滞周期，默认 50
     var volatilityMult: Double { config.sensitivity }    // 波动率乘数，默认 1.5
-    var loopEnd: Int { Int(config.threshold) }           // 循环终点，默认 70
+    var loopEnd: Int { max(Int(config.threshold), 2) }           // 循环终点，默认 70
     var thresholdUp: Int { 5 }
     var thresholdDown: Int { -5 }
 

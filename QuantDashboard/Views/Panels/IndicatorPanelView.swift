@@ -144,6 +144,7 @@ struct IndicatorPanelCard: View {
                         // 主值曲线
                         var mainPath = Path()
                         for (i, val) in values.enumerated() {
+                            guard val.isFinite else { continue }
                             let x = CGFloat(i) * stepX
                             let y = range > 0
                                 ? size.height * (1 - CGFloat((val - minVal) / range))
@@ -163,8 +164,9 @@ struct IndicatorPanelCard: View {
                             var secPath = Path()
                             let secMin = secValues.min() ?? 0
                             let secMax = secValues.max() ?? 1
-                            let secRange = secMax - secMin
+                            let secRange = max(secMax - secMin, 0.001)
                             for (i, val) in secValues.enumerated() {
+                                guard val.isFinite else { continue }
                                 let x = CGFloat(i) * stepX
                                 let y = secRange > 0
                                     ? size.height * (1 - CGFloat((val - secMin) / secRange))

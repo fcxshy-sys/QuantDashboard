@@ -139,15 +139,16 @@ struct KLineChartView: View {
                     ZStack {
                         gridLines(in: size, priceMin: priceMin, priceMax: priceMax)
 
-                        Canvas { context, canvasSize in
-                            for (i, candle) in visibleCandles.enumerated() {
-                                let x = CGFloat(i) * candleWidth + candleWidth / 2
+                    Canvas { context, canvasSize in
+                        for (i, candle) in visibleCandles.enumerated() {
+                            let x = CGFloat(i) * candleWidth + candleWidth / 2
 
-                                func y(_ price: Double) -> CGFloat {
-                                    let ratio = priceRange > 0
-                                        ? (price - priceMin) / priceRange : 0.5
-                                    return size.height * (1 - CGFloat(ratio))
-                                }
+                            func y(_ price: Double) -> CGFloat {
+                                guard price.isFinite else { return size.height / 2 }
+                                let ratio = priceRange > 0
+                                    ? (price - priceMin) / priceRange : 0.5
+                                return size.height * (1 - CGFloat(ratio))
+                            }
 
                                 let bodyTop = y(max(candle.open, candle.close))
                                 let bodyBottom = y(min(candle.open, candle.close))
@@ -355,16 +356,17 @@ struct IndicatorSubChart: View {
                 let maxVal = values.max() ?? 1
                 let range = maxVal - minVal
 
-                Canvas { context, canvasSize in
-                    guard values.count > 1 else { return }
-                    let stepX = size.width / CGFloat(values.count - 1)
+                    Canvas { context, canvasSize in
+                        guard values.count > 1 else { return }
+                        let stepX = size.width / CGFloat(values.count - 1)
 
-                    var path = Path()
-                    for (i, val) in values.enumerated() {
-                        let x = CGFloat(i) * stepX
-                        let y = range > 0
-                            ? size.height * (1 - CGFloat((val - minVal) / range))
-                            : size.height / 2
+                        var path = Path()
+                        for (i, val) in values.enumerated() {
+                            guard val.isFinite else { continue }
+                            let x = CGFloat(i) * stepX
+                            let y = range > 0
+                                ? size.height * (1 - CGFloat((val - minVal) / range))
+                                : size.height / 2
                         if i == 0 {
                             path.move(to: CGPoint(x: x, y: y))
                         } else {

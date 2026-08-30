@@ -156,6 +156,7 @@ struct PerformanceTrackerView: View {
                         let step = size.width / CGFloat(equity.count - 1)
                         var path = Path()
                         for (i, v) in equity.enumerated() {
+                            guard v.isFinite else { continue }
                             let x = CGFloat(i) * step
                             let y = range > 0 ? size.height * (1 - CGFloat((v - minV) / range)) : size.height / 2
                             if i == 0 { path.move(to: CGPoint(x: x, y: y)) }

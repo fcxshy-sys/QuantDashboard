@@ -25,6 +25,8 @@ class IndicatorEngine: ObservableObject {
     private(set) var indicators: [IndicatorProtocol] = []
     private let indicatorLock = NSLock()
     private var computeWorkItem: DispatchWorkItem?
+    private var lastComputeTime: Date = .distantPast
+    private let minComputeInterval: TimeInterval = 0.3
 
     // MARK: - 初始化
     private init() {
@@ -41,6 +43,9 @@ class IndicatorEngine: ObservableObject {
     /// 对给定 K 线数据执行所有已启用指标的计算
     func computeAll(candles: [CandleData], asset: TradeAsset) {
         guard !candles.isEmpty else { return }
+        let now = Date()
+        guard now.timeIntervalSince(lastComputeTime) >= minComputeInterval else { return }
+        lastComputeTime = now
 
         computeWorkItem?.cancel()
         let workItem = DispatchWorkItem { [weak self] in
@@ -55,15 +60,24 @@ class IndicatorEngine: ObservableObject {
                 guard indicator.config.isEnabled else { continue }
                 let series = indicator.calculate(candles: computeCandles)
                 let signal = indicator.generateSignal(candles: computeCandles)
-                newResults[indicator.index] = signal
-                newTimeSeries[indicator.index] = series
+                if signal.value.isFinite {
+                    newResults[indicator.index] = signal
+                }
+                newTimeSeries[indicator.index] = series.filter { $0.mainValue.isFinite }
             }
             self.indicatorLock.unlock()
 
             let radar = self.radarEngine.evaluate(candles: computeCandles, asset: asset)
 
+            let safeResults = newResults.mapValues { r -> IndicatorResult in
+                guard r.value.isFinite else {
+                    return IndicatorResult(indicatorName: r.indicatorName, indicatorIndex: r.indicatorIndex, value: 0, signal: .neutral, strength: .weak, description: "计算异常")
+                }
+                return r
+            }
+
             DispatchQueue.main.async { [weak self] in
-                self?.latestResults = newResults
+                self?.latestResults = safeResults
                 self?.timeSeries = newTimeSeries
                 self?.radarScore = radar
             }

@@ -145,7 +145,8 @@ struct IndicatorScoreBar: View {
     let score: Double
 
     private var normalizedPosition: Double {
-        (score + 100) / 200  // -100..+100 → 0..1
+        let pos = (score + 100) / 200
+        return pos.isFinite ? min(max(pos, 0), 1) : 0.5
     }
 
     private var barColor: Color {
@@ -187,7 +188,7 @@ struct IndicatorScoreBar: View {
             }
             .frame(height: 6)
 
-            Text(String(format: "%.0f", score))
+            Text(String(format: "%.0f", score.isFinite ? score : 0))
                 .font(.system(size: 11, weight: .bold, design: .rounded))
                 .foregroundStyle(barColor)
                 .frame(width: 30, alignment: .trailing)
