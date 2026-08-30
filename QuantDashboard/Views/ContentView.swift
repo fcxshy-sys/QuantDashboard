@@ -32,6 +32,12 @@ struct ContentView: View {
         case signalStats = "信号统计"
         case tradeJournal = "交易记录"
         case snapshots = "每日快照"
+        case calculator = "交易计算器"
+        case converter = "汇率换算"
+        case alertCenter = "通知中心"
+        case performance = "绩效追踪"
+        case assetDetail = "资产详情"
+        case export = "数据导出"
 
         var icon: String {
             switch self {
@@ -44,6 +50,12 @@ struct ContentView: View {
             case .signalStats: return "chart.pie"
             case .tradeJournal: return "list.clipboard"
             case .snapshots: return "camera.metering.center.weighted"
+            case .calculator: return "number.circle"
+            case .converter: return "coloncurrencysign.circle"
+            case .alertCenter: return "bell.circle"
+            case .performance: return "chart.line.uptrend.xyaxis"
+            case .assetDetail: return "info.circle"
+            case .export: return "square.and.arrow.up"
             }
         }
     }
@@ -160,6 +172,18 @@ struct ContentView: View {
                     TradeJournalView(marketVM: marketVM, indicatorVM: indicatorVM)
                 case .snapshots:
                     SnapshotView(marketVM: marketVM, indicatorVM: indicatorVM)
+                case .calculator:
+                    TradingCalculatorView(marketVM: marketVM)
+                case .converter:
+                    CurrencyConverterView(marketVM: marketVM)
+                case .alertCenter:
+                    AlertCenterView(indicatorVM: indicatorVM)
+                case .performance:
+                    PerformanceTrackerView()
+                case .assetDetail:
+                    AssetDetailView(marketVM: marketVM, indicatorVM: indicatorVM, asset: marketVM.currentAsset)
+                case .export:
+                    ExportView()
                 }
             }
             .toolbar {

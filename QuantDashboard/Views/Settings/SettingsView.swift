@@ -10,6 +10,10 @@ struct SettingsView: View {
     @State private var editWeight: Double = 0.2
 
     @StateObject private var themeManager = ThemeManager.shared
+    @StateObject private var journalManager = TradeJournalManager.shared
+    @StateObject private var statsManager = SignalStatsManager.shared
+    @State private var showClearConfirm = false
+    @State private var showResetIndicatorConfirm = false
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -54,6 +58,7 @@ struct SettingsView: View {
                 }
 
                 resonanceThresholdCard
+                dataManagementCard
                 aboutCard
             }
             .padding(.horizontal, 16)
@@ -64,17 +69,19 @@ struct SettingsView: View {
 
     private var themeCard: some View {
         GlassCard(title: "外观", icon: "paintbrush") {
-            HStack {
-                Text("深色模式")
-                    .font(.system(size: 14))
-                    .foregroundStyle(LiquidGlassTheme.primaryText)
-                Spacer()
-                Toggle("", isOn: Binding(
-                    get: { themeManager.isDarkMode },
-                    set: { _ in themeManager.toggle() }
-                ))
-                .tint(LiquidGlassTheme.neutralAccent)
-                .labelsHidden()
+            VStack(spacing: 10) {
+                HStack {
+                    Text("深色模式")
+                        .font(.system(size: 14))
+                        .foregroundStyle(LiquidGlassTheme.primaryText)
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { themeManager.isDarkMode },
+                        set: { _ in themeManager.toggle() }
+                    ))
+                    .tint(LiquidGlassTheme.neutralAccent)
+                    .labelsHidden()
+                }
             }
         }
     }
@@ -120,19 +127,124 @@ struct SettingsView: View {
         }
     }
 
+    private var dataManagementCard: some View {
+        GlassCard(title: "数据管理", icon: "externaldrive") {
+            VStack(spacing: 10) {
+                dataRow(label: "交易记录", count: "\(journalManager.records.count) 条", icon: "list.clipboard")
+                dataRow(label: "信号统计", count: "\(statsManager.stats.count) 个指标", icon: "chart.pie")
+                dataRow(label: "每日快照", count: "\(statsManager.snapshots.count) 个", icon: "camera")
+                Divider().background(Color.white.opacity(0.06))
+
+                HStack(spacing: 10) {
+                    Button {
+                        showResetIndicatorConfirm = true
+                    } label: {
+                        Text("重置指标参数")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(LiquidGlassTheme.bearishAccent)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(RoundedRectangle(cornerRadius: 8).fill(LiquidGlassTheme.bearishAccent.opacity(0.1)))
+                    }
+                    .buttonStyle(.plain)
+
+                    Button {
+                        showClearConfirm = true
+                    } label: {
+                        Text("清除所有数据")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.red)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(RoundedRectangle(cornerRadius: 8).fill(Color.red.opacity(0.1)))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .alert("确认重置指标参数?", isPresented: $showResetIndicatorConfirm) {
+            Button("取消", role: .cancel) {}
+            Button("重置", role: .destructive) {
+                statsManager.resetStats()
+            }
+        } message: {
+            Text("将清除所有指标统计数据")
+        }
+        .alert("确认清除所有数据?", isPresented: $showClearConfirm) {
+            Button("取消", role: .cancel) {}
+            Button("清除", role: .destructive) {
+                statsManager.resetStats()
+                statsManager.snapshots.removeAll()
+                journalManager.records.removeAll()
+                UserDefaults.standard.removeObject(forKey: "price_alerts")
+                UserDefaults.standard.removeObject(forKey: "trade_journal")
+                UserDefaults.standard.removeObject(forKey: "signal_stats")
+                UserDefaults.standard.removeObject(forKey: "daily_snapshots")
+            }
+        } message: {
+            Text("此操作不可撤销，将清除交易记录、信号统计、每日快照和价格预警")
+        }
+    }
+
+    private func dataRow(label: String, count: String, icon: String) -> some View {
+        HStack {
+            Image(systemName: icon)
+                .font(.system(size: 12))
+                .foregroundStyle(LiquidGlassTheme.tertiaryText)
+                .frame(width: 20)
+            Text(label)
+                .font(.system(size: 13))
+                .foregroundStyle(LiquidGlassTheme.secondaryText)
+            Spacer()
+            Text(count)
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .foregroundStyle(LiquidGlassTheme.primaryText)
+        }
+    }
+
     private var aboutCard: some View {
         GlassCard(title: "关于", icon: "info.circle") {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("9y看板 量化交易")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(LiquidGlassTheme.primaryText)
-                Text("版本 1.0.0")
-                    .font(.system(size: 12))
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("9y看板")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(LiquidGlassTheme.primaryText)
+                    Text("量化交易")
+                        .font(.system(size: 14))
+                        .foregroundStyle(LiquidGlassTheme.neutralAccent)
+                }
+
+                Group {
+                    aboutRow("版本", "2.0.0")
+                    aboutRow("构建", "2026.08.30")
+                    aboutRow("数据源", "Gate.io WebSocket + REST")
+                    aboutRow("引擎", "5 大核心指标 · 多空共振雷达")
+                    aboutRow("部署", "TrollStore 侧载")
+                }
+
+                Divider().background(Color.white.opacity(0.06))
+
+                aboutRow("支持", "BTC · ETH · SOL · BNB · XRP · XAU")
+                aboutRow("协议", "MIT License")
+
+                Text("本工具仅供学习研究使用，不构成任何投资建议")
+                    .font(.system(size: 10))
                     .foregroundStyle(LiquidGlassTheme.tertiaryText)
-                Text("Gate.io 数据源 · TrollStore 部署")
-                    .font(.system(size: 12))
-                    .foregroundStyle(LiquidGlassTheme.tertiaryText)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, 4)
             }
+        }
+    }
+
+    private func aboutRow(_ label: String, _ value: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 12))
+                .foregroundStyle(LiquidGlassTheme.tertiaryText)
+            Spacer()
+            Text(value)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(LiquidGlassTheme.secondaryText)
         }
     }
 }
