@@ -54,13 +54,17 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
     }
 
     func disconnect() {
-        heartbeatTimer?.invalidate()
-        reconnectTimer?.invalidate()
         webSocket?.cancel(with: .goingAway, reason: nil)
         webSocket = nil
         session?.invalidateAndCancel()
         session = nil
-        DispatchQueue.main.async { self.isConnected = false }
+        DispatchQueue.main.async {
+            self.heartbeatTimer?.invalidate()
+            self.heartbeatTimer = nil
+            self.reconnectTimer?.invalidate()
+            self.reconnectTimer = nil
+            self.isConnected = false
+        }
     }
 
     func switchStreams(_ streams: [String]) {
@@ -233,17 +237,18 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
         DispatchQueue.main.async {
             self.isConnected = false
             self.onConnectStatusChanged?(false)
-        }
-        heartbeatTimer?.invalidate()
+            self.heartbeatTimer?.invalidate()
+            self.heartbeatTimer = nil
 
-        guard reconnectAttempts < maxReconnectAttempts, !isReconnecting else { return }
-        isReconnecting = true
-        let delay = min(pow(2.0, Double(reconnectAttempts)), 30)
-        reconnectAttempts += 1
+            guard self.reconnectAttempts < self.maxReconnectAttempts, !self.isReconnecting else { return }
+            self.isReconnecting = true
+            let delay = min(pow(2.0, Double(self.reconnectAttempts)), 30)
+            self.reconnectAttempts += 1
 
-        reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
-            self?.isReconnecting = false
-            self?.connect(streams: self?.currentStreams ?? [])
+            self.reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
+                self?.isReconnecting = false
+                self?.connect(streams: self?.currentStreams ?? [])
+            }
         }
     }
 }

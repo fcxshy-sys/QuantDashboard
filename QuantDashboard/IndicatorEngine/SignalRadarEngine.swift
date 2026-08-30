@@ -17,6 +17,7 @@ class SignalRadarEngine: ObservableObject {
     // MARK: - 私有状态
     private var indicators: [IndicatorProtocol] = []
     private var configs: [IndicatorConfig]
+    private let lock = NSLock()
 
     // MARK: - 共振阈值（>= 此数量的同向信号触发强信号）
     var consensusThreshold: Int = 3
@@ -43,6 +44,8 @@ class SignalRadarEngine: ObservableObject {
 
     // MARK: - 更新指标配置
     func updateIndicatorConfig(at index: Int, config: IndicatorConfig) {
+        lock.lock()
+        defer { lock.unlock() }
         guard index >= 0 && index < indicators.count else { return }
         configs[index] = config
         indicators[index].updateConfig(config)
@@ -61,7 +64,8 @@ class SignalRadarEngine: ObservableObject {
         var totalWeight: Double = 0
 
         // 逐个计算已启用的指标
-        for (_, indicator) in indicators.enumerated() {
+        lock.lock()
+        for indicator in indicators {
             guard indicator.config.isEnabled else { continue }
             enabledCount += 1
             totalWeight += indicator.config.weight
@@ -71,17 +75,20 @@ class SignalRadarEngine: ObservableObject {
             scores[indicator.index] = directionScore
             directions.append(result.signal)
         }
+        lock.unlock()
 
         // 确保权重归一化
         let normalizedWeight = totalWeight > 0 ? totalWeight : 1.0
 
         // 加权综合评分 (-100 ~ +100)
         var weightedSum: Double = 0
-        for (_, indicator) in indicators.enumerated() {
+        lock.lock()
+        for indicator in indicators {
             guard indicator.config.isEnabled,
                   let score = scores[indicator.index] else { continue }
             weightedSum += score * (indicator.config.weight / normalizedWeight)
         }
+        lock.unlock()
 
         let finalScore = max(-100, min(100, weightedSum))
 

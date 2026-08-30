@@ -137,8 +137,9 @@ class DataPipeline: ObservableObject {
                 self.connectionStatus = "黄金数据已连接"
                 self.latestPrice = newCandles.last?.close ?? 0
                 self.isLoading = false
+
+                self.indicatorEngine.computeAll(candles: newCandles, asset: .xauUSD)
             }
-            self.indicatorEngine.computeAll(candles: newCandles, asset: .xauUSD)
         }
 
         goldProvider.onError = { [weak self] msg in
@@ -167,30 +168,34 @@ class DataPipeline: ObservableObject {
                 self.latestPrice = historicalCandles.last?.close ?? 0
                 self.lastUpdateTime = Date()
                 self.isLoading = false
-            }
 
-            self.indicatorEngine.computeAll(candles: historicalCandles, asset: asset)
+                self.indicatorEngine.computeAll(candles: historicalCandles, asset: asset)
+            }
         }
     }
 
     private func handleKLineUpdate(symbol: String, interval: KLineInterval, candle: CandleData) {
         guard interval == currentInterval else { return }
 
-        var updatedCandles = candles
-        if let lastIndex = updatedCandles.indices.last,
-           Calendar.current.isDate(updatedCandles[lastIndex].openTime, equalTo: candle.openTime, toGranularity: .second) {
-            updatedCandles[lastIndex] = candle
-        } else {
-            updatedCandles.append(candle)
-            if updatedCandles.count > 1000 { updatedCandles.removeFirst(updatedCandles.count - 1000) }
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
+            var updatedCandles = self.candles
+            if let lastIndex = updatedCandles.indices.last,
+               Calendar.current.isDate(updatedCandles[lastIndex].openTime, equalTo: candle.openTime, toGranularity: .second) {
+                updatedCandles[lastIndex] = candle
+            } else {
+                updatedCandles.append(candle)
+                if updatedCandles.count > 1000 { updatedCandles.removeFirst(updatedCandles.count - 1000) }
+            }
+
+            self.candles = updatedCandles
+            self.latestPrice = candle.close
+            self.lastUpdateTime = Date()
+            self.errorMessage = nil
+
+            self.indicatorEngine.computeAll(candles: updatedCandles, asset: self.currentAsset)
         }
-
-        candles = updatedCandles
-        latestPrice = candle.close
-        lastUpdateTime = Date()
-        errorMessage = nil
-
-        indicatorEngine.computeAll(candles: updatedCandles, asset: currentAsset)
     }
 
     func switchAsset(to asset: TradeAsset) {
