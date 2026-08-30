@@ -250,8 +250,7 @@ struct KLineChartView: View {
     private func crosshairView(at pos: CGPoint, size: CGSize,
                                 visibleCandles: [CandleData], candleWidth: CGFloat,
                                 priceMin: Double, priceMax: Double) -> some View {
-        let index = min(max(Int(pos.x / candleWidth), 0), visibleCandles.count - 1)
-        let candle = visibleCandles[index]
+        let index = min(max(Int(pos.x / candleWidth), 0), max(visibleCandles.count - 1, 0))
         let priceRange = priceMax - priceMin
         let priceAtCursor = priceRange > 0
             ? priceMax - Double(pos.y / size.height) * priceRange : 0

@@ -101,9 +101,12 @@ class DataPipeline: ObservableObject {
         gateWS.connect(streams: streams)
         loadHistoricalKLines(exchange: .gateIO, asset: asset, interval: interval)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
-            guard let self = self, self.connectionStatus == "连接中..." else { return }
-            self.connectionStatus = "连接超时，重试中..."
+        DispatchQueue.main.asyncAfter(deadline: .now() + 8) { [weak self] in
+            guard let self = self else { return }
+            if self.connectionStatus == "连接中..." {
+                self.connectionStatus = "连接超时，自动重试..."
+                self.gateWS.connect(streams: streams)
+            }
         }
     }
 

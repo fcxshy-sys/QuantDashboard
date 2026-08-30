@@ -73,8 +73,8 @@ struct PerformanceTrackerView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-        .background(GlassCard(direction: .neutral) { EmptyView() })
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.04)))
+        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.08), lineWidth: 0.5))
     }
 
     private var winRateChart: some View {

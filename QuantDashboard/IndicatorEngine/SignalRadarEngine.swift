@@ -61,7 +61,7 @@ class SignalRadarEngine: ObservableObject {
         var totalWeight: Double = 0
 
         // 逐个计算已启用的指标
-        for (i, indicator) in indicators.enumerated() {
+        for (_, indicator) in indicators.enumerated() {
             guard indicator.config.isEnabled else { continue }
             enabledCount += 1
             totalWeight += indicator.config.weight
@@ -77,7 +77,7 @@ class SignalRadarEngine: ObservableObject {
 
         // 加权综合评分 (-100 ~ +100)
         var weightedSum: Double = 0
-        for (i, indicator) in indicators.enumerated() {
+        for (_, indicator) in indicators.enumerated() {
             guard indicator.config.isEnabled,
                   let score = scores[indicator.index] else { continue }
             weightedSum += score * (indicator.config.weight / normalizedWeight)

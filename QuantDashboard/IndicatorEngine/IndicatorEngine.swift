@@ -23,6 +23,8 @@ class IndicatorEngine: ObservableObject {
 
     // MARK: - 指标实例列表
     private(set) var indicators: [IndicatorProtocol] = []
+    private let indicatorLock = NSLock()
+    private var computeWorkItem: DispatchWorkItem?
 
     // MARK: - 初始化
     private init() {
@@ -40,23 +42,27 @@ class IndicatorEngine: ObservableObject {
     func computeAll(candles: [CandleData], asset: TradeAsset) {
         guard !candles.isEmpty else { return }
 
-        let computeCandles = candles
-
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        computeWorkItem?.cancel()
+        let workItem = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
+            let computeCandles = candles
+
+            self.indicatorLock.lock()
+            let snapshot = self.indicators.map { ($0.index, $0.config.isEnabled) }
+            self.indicatorLock.unlock()
 
             var newResults: [Int: IndicatorResult] = [:]
             var newTimeSeries: [Int: [IndicatorTimePoint]] = [:]
 
+            self.indicatorLock.lock()
             for indicator in self.indicators {
                 guard indicator.config.isEnabled else { continue }
-
                 let series = indicator.calculate(candles: computeCandles)
                 let signal = indicator.generateSignal(candles: computeCandles)
-
                 newResults[indicator.index] = signal
                 newTimeSeries[indicator.index] = series
             }
+            self.indicatorLock.unlock()
 
             let radar = self.radarEngine.evaluate(candles: computeCandles, asset: asset)
 
@@ -66,12 +72,16 @@ class IndicatorEngine: ObservableObject {
                 self?.radarScore = radar
             }
         }
+        computeWorkItem = workItem
+        DispatchQueue.global(qos: .userInitiated).async(execute: workItem)
     }
 
     // MARK: - 更新单个指标配置
     func updateConfig(for index: Int, config: IndicatorConfig) {
         guard index >= 0 && index < indicators.count else { return }
+        indicatorLock.lock()
         indicators[index].updateConfig(config)
+        indicatorLock.unlock()
         radarEngine.updateIndicatorConfig(at: index, config: config)
     }
 
@@ -83,6 +93,9 @@ class IndicatorEngine: ObservableObject {
 
     // MARK: - 获取所有指标配置
     func allConfigs() -> [IndicatorConfig] {
-        indicators.map { $0.config }
+        indicatorLock.lock()
+        let configs = indicators.map { $0.config }
+        indicatorLock.unlock()
+        return configs
     }
 }

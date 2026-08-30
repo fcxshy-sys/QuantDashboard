@@ -541,8 +541,6 @@ class CustomIndicator4: IndicatorBase {
         var orH: Double = 0
         var orL: Double = Double.infinity
         var orLocked = false
-        var orStartIdx = 0
-
         // 简化：取前 20 根 K 线作为开盘区间（实际应按时段窗口）
         let orbLength = min(20, candles.count / 4)
 
@@ -556,7 +554,6 @@ class CustomIndicator4: IndicatorBase {
                     orL = min(orL, candles[j].low)
                 }
                 orLocked = true
-                orStartIdx = 0
             }
 
             // 每日重置（简化：每 100 根重置）
@@ -564,7 +561,6 @@ class CustomIndicator4: IndicatorBase {
                 orH = candle.high
                 orL = candle.low
                 orLocked = false
-                orStartIdx = i
             }
 
             if orLocked && i > orbLength {
@@ -573,7 +569,6 @@ class CustomIndicator4: IndicatorBase {
             }
 
             let orRange = orH - orL
-            let buffer = atr * bufferMult
 
             // 偏向
             let bias: Double = orLocked ? (candle.close > orH ? 1 : candle.close < orL ? -1 : 0) : 0
@@ -741,8 +736,6 @@ class CustomIndicator5: IndicatorBase {
                                    value: 0, signal: .neutral, strength: .weak,
                                    description: "数据不足")
         }
-        let prev = timePoints[timePoints.count - 2]
-
         let basis = latest.mainValue
         let score = Int(latest.secondaryValue ?? 0)
         let vol = latest.tertiaryValue ?? 0
