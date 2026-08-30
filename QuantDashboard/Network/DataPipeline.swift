@@ -100,6 +100,11 @@ class DataPipeline: ObservableObject {
         ]
         gateWS.connect(streams: streams)
         loadHistoricalKLines(exchange: .gateIO, asset: asset, interval: interval)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
+            guard let self = self, self.connectionStatus == "连接中..." else { return }
+            self.connectionStatus = "连接超时，重试中..."
+        }
     }
 
     private func startGoldStream() {
@@ -156,6 +161,7 @@ class DataPipeline: ObservableObject {
                     return
                 }
                 self.candles = historicalCandles
+                self.latestPrice = historicalCandles.last?.close ?? 0
                 self.lastUpdateTime = Date()
                 self.isLoading = false
             }

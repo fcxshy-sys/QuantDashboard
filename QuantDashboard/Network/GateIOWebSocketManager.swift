@@ -277,7 +277,8 @@ extension GateIOWebSocketManager {
 
             let candles = json.compactMap { row -> CandleData? in
                 guard row.count >= 6,
-                      let ts = row[0] as? TimeInterval,
+                      let tsRaw = row[0] as? String,
+                      let ts = Double(tsRaw),
                       let vol = Double("\(row[1])"),
                       let close = Double("\(row[2])"),
                       let high = Double("\(row[3])"),
