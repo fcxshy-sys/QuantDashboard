@@ -49,6 +49,36 @@
 		/* App */
 		A80001 /* QuantDashboardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B80001; };
 		A80004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B80004; };
+
+		/* New Models */
+		A91001 /* PriceAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91001; };
+		A91002 /* TradeRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91002; };
+		A91003 /* IndicatorTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91003; };
+		A91004 /* BacktestResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91004; };
+		A91005 /* SignalStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91005; };
+		A91006 /* AssetRanking.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91006; };
+
+		/* New Services */
+		A91007 /* PriceAlertManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91007; };
+		A91008 /* TradeJournalManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91008; };
+		A91009 /* IndicatorTemplateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91009; };
+		A91010 /* SignalStatsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91010; };
+		A91011 /* BacktestEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91011; };
+		A91012 /* DailySnapshotService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91012; };
+
+		/* New Views */
+		A91013 /* MultiTimeframePanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91013; };
+		A91014 /* RankingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91014; };
+		A91015 /* PriceAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91015; };
+		A91016 /* DepthChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91016; };
+		A91017 /* TemplateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91017; };
+		A91018 /* BacktestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91018; };
+		A91019 /* SignalStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91019; };
+		A91020 /* AssetEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91020; };
+		A91021 /* LandscapeKLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91021; };
+		A91022 /* TradeJournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91022; };
+		A91023 /* SnapshotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91023; };
+		A91024 /* LandscapeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91024; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -98,6 +128,36 @@
 		B80002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B80003 /* Entitlements.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Entitlements.plist; sourceTree = "<group>"; };
 		B80004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+
+		/* New Models */
+		B91001 /* PriceAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceAlert.swift; sourceTree = "<group>"; };
+		B91002 /* TradeRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeRecord.swift; sourceTree = "<group>"; };
+		B91003 /* IndicatorTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorTemplate.swift; sourceTree = "<group>"; };
+		B91004 /* BacktestResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktestResult.swift; sourceTree = "<group>"; };
+		B91005 /* SignalStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalStats.swift; sourceTree = "<group>"; };
+		B91006 /* AssetRanking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetRanking.swift; sourceTree = "<group>"; };
+
+		/* New Services */
+		B91007 /* PriceAlertManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceAlertManager.swift; sourceTree = "<group>"; };
+		B91008 /* TradeJournalManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeJournalManager.swift; sourceTree = "<group>"; };
+		B91009 /* IndicatorTemplateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorTemplateManager.swift; sourceTree = "<group>"; };
+		B91010 /* SignalStatsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalStatsManager.swift; sourceTree = "<group>"; };
+		B91011 /* BacktestEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktestEngine.swift; sourceTree = "<group>"; };
+		B91012 /* DailySnapshotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailySnapshotService.swift; sourceTree = "<group>"; };
+
+		/* New Views */
+		B91013 /* MultiTimeframePanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiTimeframePanelView.swift; sourceTree = "<group>"; };
+		B91014 /* RankingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RankingView.swift; sourceTree = "<group>"; };
+		B91015 /* PriceAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceAlertView.swift; sourceTree = "<group>"; };
+		B91016 /* DepthChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepthChartView.swift; sourceTree = "<group>"; };
+		B91017 /* TemplateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateView.swift; sourceTree = "<group>"; };
+		B91018 /* BacktestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktestView.swift; sourceTree = "<group>"; };
+		B91019 /* SignalStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignalStatsView.swift; sourceTree = "<group>"; };
+		B91020 /* AssetEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetEditorView.swift; sourceTree = "<group>"; };
+		B91021 /* LandscapeKLineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandscapeKLineView.swift; sourceTree = "<group>"; };
+		B91022 /* TradeJournalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeJournalView.swift; sourceTree = "<group>"; };
+		B91023 /* SnapshotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotView.swift; sourceTree = "<group>"; };
+		B91024 /* LandscapeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandscapeButton.swift; sourceTree = "<group>"; };
 
 		/* Product */
 		B90001 /* QuantDashboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuantDashboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -158,6 +218,12 @@
 				B10001 /* AssetModels.swift */,
 				B10002 /* CandleData.swift */,
 				B10003 /* IndicatorModels.swift */,
+				B91001 /* PriceAlert.swift */,
+				B91002 /* TradeRecord.swift */,
+				B91003 /* IndicatorTemplate.swift */,
+				B91004 /* BacktestResult.swift */,
+				B91005 /* SignalStats.swift */,
+				B91006 /* AssetRanking.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -190,6 +256,12 @@
 			children = (
 				B40001 /* LocalAlertManager.swift */,
 				B40002 /* ThemeManager.swift */,
+				B91007 /* PriceAlertManager.swift */,
+				B91008 /* TradeJournalManager.swift */,
+				B91009 /* IndicatorTemplateManager.swift */,
+				B91010 /* SignalStatsManager.swift */,
+				B91011 /* BacktestEngine.swift */,
+				B91012 /* DailySnapshotService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -223,6 +295,17 @@
 				D10019 /* Charts */,
 				D1001A /* Panels */,
 				D1001B /* Settings */,
+				D1001C /* MultiTimeframe */,
+				D1001D /* Ranking */,
+				D1001E /* Alerts */,
+				D1001F /* DepthChart */,
+				D10021 /* Templates */,
+				D10022 /* Backtest */,
+				D10023 /* Stats */,
+				D10024 /* AssetEditor */,
+				D10025 /* TradeJournal */,
+				D10026 /* Snapshot */,
+				D10027 /* Components */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -239,6 +322,7 @@
 			isa = PBXGroup;
 			children = (
 				B70003 /* KLineChartView.swift */,
+				B91021 /* LandscapeKLineView.swift */,
 			);
 			path = Charts;
 			sourceTree = "<group>";
@@ -257,6 +341,94 @@
 				B70005 /* SettingsView.swift */,
 			);
 			path = Settings;
+			sourceTree = "<group>";
+		};
+		D1001C /* MultiTimeframe */ = {
+			isa = PBXGroup;
+			children = (
+				B91013 /* MultiTimeframePanelView.swift */,
+			);
+			path = MultiTimeframe;
+			sourceTree = "<group>";
+		};
+		D1001D /* Ranking */ = {
+			isa = PBXGroup;
+			children = (
+				B91014 /* RankingView.swift */,
+			);
+			path = Ranking;
+			sourceTree = "<group>";
+		};
+		D1001E /* Alerts */ = {
+			isa = PBXGroup;
+			children = (
+				B91015 /* PriceAlertView.swift */,
+			);
+			path = Alerts;
+			sourceTree = "<group>";
+		};
+		D1001F /* DepthChart */ = {
+			isa = PBXGroup;
+			children = (
+				B91016 /* DepthChartView.swift */,
+			);
+			path = DepthChart;
+			sourceTree = "<group>";
+		};
+		D10021 /* Templates */ = {
+			isa = PBXGroup;
+			children = (
+				B91017 /* TemplateView.swift */,
+			);
+			path = Templates;
+			sourceTree = "<group>";
+		};
+		D10022 /* Backtest */ = {
+			isa = PBXGroup;
+			children = (
+				B91018 /* BacktestView.swift */,
+			);
+			path = Backtest;
+			sourceTree = "<group>";
+		};
+		D10023 /* Stats */ = {
+			isa = PBXGroup;
+			children = (
+				B91019 /* SignalStatsView.swift */,
+			);
+			path = Stats;
+			sourceTree = "<group>";
+		};
+		D10024 /* AssetEditor */ = {
+			isa = PBXGroup;
+			children = (
+				B91020 /* AssetEditorView.swift */,
+			);
+			path = AssetEditor;
+			sourceTree = "<group>";
+		};
+		D10025 /* TradeJournal */ = {
+			isa = PBXGroup;
+			children = (
+				B91022 /* TradeJournalView.swift */,
+			);
+			path = TradeJournal;
+			sourceTree = "<group>";
+		};
+		D10026 /* Snapshot */ = {
+			isa = PBXGroup;
+			children = (
+				B91023 /* SnapshotView.swift */,
+			);
+			path = Snapshot;
+			sourceTree = "<group>";
+		};
+		D10027 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				B91024 /* LandscapeButton.swift */,
+			);
+			path = Components;
 			sourceTree = "<group>";
 		};
 		D10020 /* Products */ = {
@@ -352,6 +524,30 @@
 				A70005 /* SettingsView.swift */,
 				A70006 /* LaunchScreen.swift */,
 				A70007 /* BackgroundImageView.swift */,
+				A91001 /* PriceAlert.swift */,
+				A91002 /* TradeRecord.swift */,
+				A91003 /* IndicatorTemplate.swift */,
+				A91004 /* BacktestResult.swift */,
+				A91005 /* SignalStats.swift */,
+				A91006 /* AssetRanking.swift */,
+				A91007 /* PriceAlertManager.swift */,
+				A91008 /* TradeJournalManager.swift */,
+				A91009 /* IndicatorTemplateManager.swift */,
+				A91010 /* SignalStatsManager.swift */,
+				A91011 /* BacktestEngine.swift */,
+				A91012 /* DailySnapshotService.swift */,
+				A91013 /* MultiTimeframePanelView.swift */,
+				A91014 /* RankingView.swift */,
+				A91015 /* PriceAlertView.swift */,
+				A91016 /* DepthChartView.swift */,
+				A91017 /* TemplateView.swift */,
+				A91018 /* BacktestView.swift */,
+				A91019 /* SignalStatsView.swift */,
+				A91020 /* AssetEditorView.swift */,
+				A91021 /* LandscapeKLineView.swift */,
+				A91022 /* TradeJournalView.swift */,
+				A91023 /* SnapshotView.swift */,
+				A91024 /* LandscapeButton.swift */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,11 +1,5 @@
-// ============================================================
-// ContentView.swift
-// QuantDashboard - 主导航容器
-// ============================================================
-
 import SwiftUI
 
-// MARK: - 主视图容器
 struct ContentView: View {
 
     @StateObject private var marketVM = MarketViewModel()
@@ -14,28 +8,53 @@ struct ContentView: View {
 
     @State private var selectedTab: Tab = .dashboard
     @State private var showAssetPicker = false
+    @State private var showLandscape = false
+    @State private var showAssetEditor = false
+    @State private var selectedAssets: [TradeAsset] = TradeAsset.allCases.filter { $0.assetType == .crypto }
+    @State private var selectedTool: ToolType?
 
     enum Tab: String, CaseIterable {
         case dashboard = "看板"
         case chart = "图表"
         case indicators = "指标"
+        case tools = "工具"
         case settings = "设置"
+    }
+
+    enum ToolType: String, CaseIterable {
+        case multiTimeframe = "多周期联动"
+        case ranking = "排行榜"
+        case priceAlerts = "价格预警"
+        case depthChart = "深度图"
+        case templates = "指标模板"
+        case backtest = "策略回测"
+        case signalStats = "信号统计"
+        case tradeJournal = "交易记录"
+        case snapshots = "每日快照"
+
+        var icon: String {
+            switch self {
+            case .multiTimeframe: return "arrow.triangle.2.circlepath"
+            case .ranking: return "chart.bar.fill"
+            case .priceAlerts: return "bell.badge"
+            case .depthChart: return "arrow.left.arrow.right"
+            case .templates: return "doc.text"
+            case .backtest: return "clock.arrow.circlepath"
+            case .signalStats: return "chart.pie"
+            case .tradeJournal: return "list.clipboard"
+            case .snapshots: return "camera.metering.center.weighted"
+            }
+        }
     }
 
     var body: some View {
         ZStack {
-            // 底层背景图
             BackgroundImageView()
-
-            // 渐变覆盖
-            LiquidGlassTheme.backgroundGradient
-                .ignoresSafeArea()
+            LiquidGlassTheme.backgroundGradient.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // 顶部导航胶囊
                 topNavigationCapsule
 
-                // 主内容区
                 TabView(selection: $selectedTab) {
                     DashboardView(marketVM: marketVM, indicatorVM: indicatorVM)
                         .tag(Tab.dashboard)
@@ -46,12 +65,14 @@ struct ContentView: View {
                     IndicatorPanelView(indicatorVM: indicatorVM)
                         .tag(Tab.indicators)
 
+                    toolsGrid
+                        .tag(Tab.tools)
+
                     SettingsView(indicatorVM: indicatorVM)
                         .tag(Tab.settings)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
 
-                // 底部 Tab 栏
                 bottomTabBar
             }
         }
@@ -60,53 +81,126 @@ struct ContentView: View {
             LocalAlertManager.shared.requestPermission()
             marketVM.start()
         }
-        .onDisappear {
-            marketVM.stop()
+        .onDisappear { marketVM.stop() }
+        .fullScreenCover(isPresented: $showLandscape) {
+            LandscapeKLineView(marketVM: marketVM, indicatorVM: indicatorVM)
         }
+        .sheet(isPresented: $showAssetEditor) {
+            AssetEditorView(selectedAssets: $selectedAssets)
+        }
+        .sheet(item: $selectedTool) { tool in
+            toolSheet(for: tool)
+        }
+    }
+
+    // MARK: - 工具网格
+    private var toolsGrid: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 16) {
+                HStack {
+                    Text("工具")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundStyle(LiquidGlassTheme.primaryText)
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: 14),
+                    GridItem(.flexible(), spacing: 14),
+                    GridItem(.flexible(), spacing: 14)
+                ], spacing: 14) {
+                    ForEach(ToolType.allCases, id: \.self) { tool in
+                        Button { selectedTool = tool } label: {
+                            GlassCard {
+                                VStack(spacing: 8) {
+                                    Image(systemName: tool.icon)
+                                        .font(.system(size: 24))
+                                        .foregroundStyle(LiquidGlassTheme.neutralAccent)
+                                    Text(tool.rawValue)
+                                        .font(.system(size: 11, weight: .medium))
+                                        .foregroundStyle(LiquidGlassTheme.secondaryText)
+                                        .multilineTextAlignment(.center)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 8)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 16)
+            }
+            .padding(.top, 8)
+            .padding(.bottom, 100)
+        }
+    }
+
+    @ViewBuilder
+    private func toolSheet(for tool: ToolType) -> some View {
+        NavigationView {
+            Group {
+                switch tool {
+                case .multiTimeframe:
+                    MultiTimeframePanelView(indicatorVM: indicatorVM, marketVM: marketVM)
+                case .ranking:
+                    RankingView(marketVM: marketVM)
+                case .priceAlerts:
+                    PriceAlertView(marketVM: marketVM)
+                case .depthChart:
+                    DepthChartView(asset: marketVM.currentAsset)
+                case .templates:
+                    TemplateView(indicatorVM: indicatorVM)
+                case .backtest:
+                    BacktestView(marketVM: marketVM, indicatorVM: indicatorVM)
+                case .signalStats:
+                    SignalStatsView(indicatorVM: indicatorVM)
+                case .tradeJournal:
+                    TradeJournalView(marketVM: marketVM, indicatorVM: indicatorVM)
+                case .snapshots:
+                    SnapshotView(marketVM: marketVM, indicatorVM: indicatorVM)
+                }
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("关闭") { selectedTool = nil }
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
     }
 
     // MARK: - 顶部导航胶囊
     private var topNavigationCapsule: some View {
         HStack(spacing: 12) {
-            // 资产切换按钮
-            Button {
-                showAssetPicker.toggle()
-            } label: {
+            Button { showAssetPicker.toggle() } label: {
                 HStack(spacing: 6) {
-                    Circle()
-                        .fill(marketVM.currentAsset.themeColor)
-                        .frame(width: 8, height: 8)
+                    Circle().fill(marketVM.currentAsset.themeColor).frame(width: 8, height: 8)
                     Text(marketVM.currentAsset.rawValue)
                         .font(.system(size: 15, weight: .bold, design: .rounded))
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 10, weight: .bold))
+                    Image(systemName: "chevron.down").font(.system(size: 10, weight: .bold))
                 }
                 .foregroundStyle(LiquidGlassTheme.primaryText)
             }
 
             Spacer()
 
-            // 连接状态
             HStack(spacing: 4) {
                 Circle()
-                    .fill(marketVM.connectionStatus.contains("已连接")
-                        ? Color.green : Color.red)
+                    .fill(marketVM.connectionStatus.contains("已连接") ? Color.green : Color.red)
                     .frame(width: 6, height: 6)
                 Text(marketVM.connectionStatus)
                     .font(.system(size: 10, weight: .medium))
             }
             .foregroundStyle(LiquidGlassTheme.tertiaryText)
 
-            // 网络延迟
             HStack(spacing: 3) {
-                Image(systemName: "bolt.fill")
-                    .font(.system(size: 9))
+                Image(systemName: "bolt.fill").font(.system(size: 9))
                 Text("\(Int(marketVM.latency))ms")
                     .font(.system(size: 10, weight: .medium, design: .monospaced))
             }
             .foregroundStyle(marketVM.latency < 100
-                ? LiquidGlassTheme.bullishAccent
-                : LiquidGlassTheme.bearishAccent)
+                ? LiquidGlassTheme.bullishAccent : LiquidGlassTheme.bearishAccent)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
@@ -123,9 +217,7 @@ struct ContentView: View {
         HStack(spacing: 0) {
             ForEach(Tab.allCases, id: \.self) { tab in
                 Button {
-                    withAnimation(.spring(response: 0.3)) {
-                        selectedTab = tab
-                    }
+                    withAnimation(.spring(response: 0.3)) { selectedTab = tab }
                 } label: {
                     VStack(spacing: 4) {
                         Image(systemName: iconName(for: tab))
@@ -134,8 +226,7 @@ struct ContentView: View {
                             .font(.system(size: 10, weight: .medium))
                     }
                     .foregroundStyle(selectedTab == tab
-                        ? LiquidGlassTheme.primaryText
-                        : LiquidGlassTheme.tertiaryText)
+                        ? LiquidGlassTheme.primaryText : LiquidGlassTheme.tertiaryText)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
                 }
@@ -150,14 +241,13 @@ struct ContentView: View {
         case .dashboard: return "chart.bar.fill"
         case .chart: return "chart.xyaxis.line"
         case .indicators: return "waveform.path.ecg"
+        case .tools: return "wrench.and.screwdriver"
         case .settings: return "gearshape.fill"
         }
     }
 }
 
-// MARK: - 资产选择器弹窗
 struct AssetPickerSheet: View {
-
     @Binding var selectedAsset: TradeAsset
     let onSelect: (TradeAsset) -> Void
     @Environment(\.dismiss) private var dismiss
@@ -166,43 +256,29 @@ struct AssetPickerSheet: View {
         NavigationView {
             List {
                 Section("贵金属") {
-                    ForEach([TradeAsset.xauUSD]) { asset in
-                        assetRow(asset)
-                    }
+                    ForEach([TradeAsset.xauUSD]) { asset in assetRow(asset) }
                 }
                 Section("加密货币") {
-                    ForEach(TradeAsset.allCases.filter { $0.assetType == .crypto }) { asset in
-                        assetRow(asset)
-                    }
+                    ForEach(TradeAsset.allCases.filter { $0.assetType == .crypto }) { asset in assetRow(asset) }
                 }
             }
             .navigationTitle("选择资产")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
-                }
-            }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } } }
         }
         .preferredColorScheme(.dark)
     }
 
     private func assetRow(_ asset: TradeAsset) -> some View {
         Button {
-            selectedAsset = asset
-            onSelect(asset)
-            dismiss()
+            selectedAsset = asset; onSelect(asset); dismiss()
         } label: {
             HStack {
-                Circle()
-                    .fill(asset.themeColor)
-                    .frame(width: 10, height: 10)
-                Text(asset.rawValue)
-                    .foregroundStyle(LiquidGlassTheme.primaryText)
+                Circle().fill(asset.themeColor).frame(width: 10, height: 10)
+                Text(asset.rawValue).foregroundStyle(LiquidGlassTheme.primaryText)
                 Spacer()
                 if asset == selectedAsset {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(LiquidGlassTheme.bullishAccent)
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(LiquidGlassTheme.bullishAccent)
                 }
             }
         }

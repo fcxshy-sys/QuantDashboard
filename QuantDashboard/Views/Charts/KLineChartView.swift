@@ -20,6 +20,8 @@ struct KLineChartView: View {
     @State private var lastScrollOffset: CGFloat = 0
     @State private var lastZoomScale: CGFloat = 1.0
 
+    @State private var showLandscape = false
+
     private let minVisibleCandles = 20
     private let maxVisibleCandles = 200
 
@@ -35,6 +37,9 @@ struct KLineChartView: View {
             .padding(.horizontal, 16)
             .padding(.top, 8)
             .padding(.bottom, 100)
+        }
+        .fullScreenCover(isPresented: $showLandscape) {
+            LandscapeKLineView(marketVM: marketVM, indicatorVM: indicatorVM)
         }
     }
 
@@ -61,21 +66,25 @@ struct KLineChartView: View {
 
     // MARK: - 周期选择器
     private var intervalSelector: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(KLineInterval.allCases) { interval in
-                    GlassButton(
-                        title: interval.displayName,
-                        icon: nil,
-                        isSelected: marketVM.currentInterval == interval
-                    ) {
-                        withAnimation(.spring(response: 0.3)) {
-                            marketVM.switchInterval(to: interval)
-                            scrollOffset = 0
+        HStack {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(KLineInterval.allCases) { interval in
+                        GlassButton(
+                            title: interval.displayName,
+                            icon: nil,
+                            isSelected: marketVM.currentInterval == interval
+                        ) {
+                            withAnimation(.spring(response: 0.3)) {
+                                marketVM.switchInterval(to: interval)
+                                scrollOffset = 0
+                            }
                         }
                     }
                 }
             }
+            Spacer()
+            LandscapeButton { showLandscape = true }
         }
     }
 

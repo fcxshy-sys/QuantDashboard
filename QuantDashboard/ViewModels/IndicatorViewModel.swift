@@ -81,4 +81,9 @@ class IndicatorViewModel: ObservableObject {
     func clearAlerts() {
         alertHistory.removeAll()
     }
+    
+    // MARK: - 从引擎重新加载配置
+    func reloadFromEngine() {
+        configs = indicatorEngine.allConfigs()
+    }
 }
