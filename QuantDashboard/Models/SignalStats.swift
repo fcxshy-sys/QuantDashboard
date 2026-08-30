@@ -36,7 +36,7 @@ struct DailySnapshot: Identifiable, Codable {
         self.asset = asset.rawValue
         self.price = price
         self.radarScore = radarScore
-        self.signals = signals.mapValues { $0 }
+        self.signals = Dictionary(uniqueKeysWithValues: signals.map { (String($0.key), $0.value) })
         self.imageData = imageData
     }
 }

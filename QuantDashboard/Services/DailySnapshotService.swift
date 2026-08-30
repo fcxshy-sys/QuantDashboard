@@ -23,8 +23,8 @@ class DailySnapshotService: ObservableObject {
     func stopMonitoring() { timer?.invalidate() }
     
     func takeManualSnapshot() -> Data? {
-        guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }),
-              let layer = window.layer else { return nil }
+        guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else { return nil }
+        let layer = window.layer
         let renderer = UIGraphicsImageRenderer(bounds: window.bounds)
         return renderer.image { ctx in layer.render(in: ctx.cgContext) }.pngData()
     }
