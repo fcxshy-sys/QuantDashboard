@@ -38,9 +38,52 @@ struct DashboardView: View {
             .padding(.top, 8)
             .padding(.bottom, 100)
         }
+        .overlay {
+            if marketVM.isLoading && marketVM.candles.isEmpty {
+                loadingOverlay
+            } else if let error = marketVM.errorMessage, marketVM.candles.isEmpty {
+                errorOverlay(error)
+            }
+        }
         .refreshable {
             marketVM.start()
         }
+    }
+
+    // MARK: - 加载态覆盖
+    private var loadingOverlay: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .tint(LiquidGlassTheme.neutralAccent)
+            Text("正在加载行情数据...")
+                .font(.system(size: 14))
+                .foregroundStyle(LiquidGlassTheme.secondaryText)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black.opacity(0.4))
+    }
+
+    // MARK: - 错误态覆盖
+    private func errorOverlay(_ message: String) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 32))
+                .foregroundStyle(LiquidGlassTheme.bearishAccent)
+            Text(message)
+                .font(.system(size: 14))
+                .foregroundStyle(LiquidGlassTheme.secondaryText)
+                .multilineTextAlignment(.center)
+            Button("重试") {
+                marketVM.start()
+            }
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 10)
+            .background(Capsule().fill(LiquidGlassTheme.neutralAccent))
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.black.opacity(0.4))
     }
 
     // MARK: - 价格概览卡片

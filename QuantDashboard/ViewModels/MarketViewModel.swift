@@ -23,6 +23,8 @@ class MarketViewModel: ObservableObject {
     @Published var connectionStatus: String = "未连接"
     @Published var latency: Double = 0
     @Published var lastUpdateTime: Date = Date()
+    @Published var isLoading: Bool = false
+    @Published var errorMessage: String?
 
     // MARK: - 组件引用
     private let dataPipeline = DataPipeline.shared
@@ -68,6 +70,16 @@ class MarketViewModel: ObservableObject {
         dataPipeline.$lastUpdateTime
             .receive(on: DispatchQueue.main)
             .assign(to: &$lastUpdateTime)
+
+        // 绑定加载状态
+        dataPipeline.$isLoading
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$isLoading)
+
+        // 绑定错误信息
+        dataPipeline.$errorMessage
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$errorMessage)
 
         // 绑定延迟
         // BinanceWS 延迟通过 Binding 传递（此处简化）

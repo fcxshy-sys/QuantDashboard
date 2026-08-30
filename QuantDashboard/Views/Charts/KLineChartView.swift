@@ -196,11 +196,11 @@ struct KLineChartView: View {
                             }
                     )
                     .gesture(
-                        MagnificationGesture()
-                            .onChanged { scale in
-                                let delta = scale / lastZoomScale
+                        MagnifyGesture()
+                            .onChanged { value in
+                                let delta = value.magnification / lastZoomScale
                                 zoomLevel = min(max(zoomLevel * delta, 0.3), 5.0)
-                                lastZoomScale = scale
+                                lastZoomScale = value.magnification
                             }
                             .onEnded { _ in
                                 lastZoomScale = 1.0

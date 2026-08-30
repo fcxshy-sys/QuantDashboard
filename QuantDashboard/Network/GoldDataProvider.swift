@@ -17,16 +17,14 @@ class GoldDataProvider: ObservableObject {
 
     var onPriceUpdate: ((Double, Double, Double) -> Void)?
     var onCandlesUpdate: (([CandleData]) -> Void)?
+    var onError: ((String) -> Void)?
 
     private var pollingTimer: Timer?
     private var dataRefreshTimer: Timer?
+    private var currentPriceTask: URLSessionDataTask?
+    private var currentKLineTask: URLSessionDataTask?
 
-    // MARK: - 新浪财经 API (实时金价)
-    // 新浪财经代码: hf_GC (COMEX黄金期货), hf_XAU (现货黄金)
     private let sinaURL = "https://hq.sinajs.cn/list=hf_GC"
-
-    // MARK: - 东方财富 API (历史K线)
-    // 现货黄金 secid: 120.XAUUSD
     private let eastmoneyBase = "https://push2his.eastmoney.com/api/qt/stock/kline/get"
 
     init() {}
@@ -47,22 +45,33 @@ class GoldDataProvider: ObservableObject {
     func stopPolling() {
         pollingTimer?.invalidate()
         dataRefreshTimer?.invalidate()
+        pollingTimer = nil
+        dataRefreshTimer = nil
+        currentPriceTask?.cancel()
+        currentKLineTask?.cancel()
     }
 
-    // MARK: - 新浪财经实时金价
     func fetchCurrentPrice() {
+        currentPriceTask?.cancel()
         guard let url = URL(string: sinaURL) else { return }
 
         var request = URLRequest(url: url)
         request.setValue("https://finance.sina.com.cn", forHTTPHeaderField: "Referer")
         request.timeoutInterval = 5
 
-        URLSession.shared.dataTask(with: request) { [weak self] data, _, error in
-            guard let data = data,
-                  let text = String(data: data, encoding: .utf8)
-            else { return }
+        currentPriceTask = URLSession.shared.dataTask(with: request) { [weak self] data, _, error in
+            guard let self = self else { return }
 
-            // 格式: var hq_str_hf_GC="黄金2408,2398.5,2400.1,...";
+            guard let data = data,
+                  let text = String(data: data, encoding: .utf8) else {
+                if let error = error {
+                    DispatchQueue.main.async {
+                        self.onError?("金价请求失败: \(error.localizedDescription)")
+                    }
+                }
+                return
+            }
+
             guard let start = text.firstIndex(of: "\""),
                   let end = text.lastIndex(of: "\""),
                   start != end else { return }
@@ -70,7 +79,6 @@ class GoldDataProvider: ObservableObject {
             let values = String(text[text.index(after: start)..<end])
                 .components(separatedBy: ",")
 
-            // 字段: 0名称 1开盘 2昨收 3最高 4最低 5现价 6买价 7卖价 ... 等
             guard values.count > 5,
                   let price = Double(values[5]),
                   let open = Double(values[2]),
@@ -80,18 +88,19 @@ class GoldDataProvider: ObservableObject {
             let changePercent = open != 0 ? (change / open * 100) : 0
 
             DispatchQueue.main.async {
-                self?.currentPrice = price
-                self?.priceChange24h = change
-                self?.priceChangePercent24h = changePercent
-                self?.isConnected = true
-                self?.onPriceUpdate?(price, change, changePercent)
+                self.currentPrice = price
+                self.priceChange24h = change
+                self.priceChangePercent24h = changePercent
+                self.isConnected = true
+                self.onPriceUpdate?(price, change, changePercent)
             }
-        }.resume()
+        }
+        currentPriceTask?.resume()
     }
 
-    // MARK: - 东方财富历史K线
     func fetchHistoricalData(period: String = "101") {
-        // period: 101=日K, 102=周K, 103=月K, 60=1分钟, 30=5分钟, 15=15分钟, 5=30分钟, 1=60分钟
+        currentKLineTask?.cancel()
+
         guard var components = URLComponents(string: eastmoneyBase) else { return }
         components.queryItems = [
             URLQueryItem(name: "secid", value: "120.XAUUSD"),
@@ -106,16 +115,24 @@ class GoldDataProvider: ObservableObject {
 
         guard let url = components.url else { return }
 
-        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
+        currentKLineTask = URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
+            guard let self = self else { return }
+
             guard let data = data,
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let dataDict = json["data"] as? [String: Any],
                   let klines = dataDict["klines"] as? [String]
-            else { return }
+            else {
+                if let error = error {
+                    DispatchQueue.main.async {
+                        self.onError?("K线数据加载失败: \(error.localizedDescription)")
+                    }
+                }
+                return
+            }
 
             var candles: [CandleData] = []
             for line in klines {
-                // 格式: "日期,开,收,高,低,成交量,成交额,振幅,涨跌幅,涨跌额,换手率"
                 let parts = line.components(separatedBy: ",")
                 guard parts.count >= 6,
                       let open = Double(parts[1]),
@@ -138,30 +155,10 @@ class GoldDataProvider: ObservableObject {
             }
 
             DispatchQueue.main.async {
-                self?.historicalCandles = candles
-                self?.onCandlesUpdate?(candles)
+                self.historicalCandles = candles
+                self.onCandlesUpdate?(candles)
             }
-        }.resume()
-    }
-
-    func generateMockCandles(count: Int = 200, basePrice: Double = 2400.0) -> [CandleData] {
-        var candles: [CandleData] = []
-        var price = basePrice
-        let now = Date()
-        for i in 0..<count {
-            let time = now.addingTimeInterval(Double(-(count - i)) * 3600)
-            let change = Double.random(in: -0.002...0.002)
-            let open = price
-            let close = price * (1 + change)
-            let high = max(open, close) * (1 + Double.random(in: 0...0.001))
-            let low = min(open, close) * (1 - Double.random(in: 0...0.001))
-            candles.append(CandleData(
-                openTime: time, open: open, high: high, low: low,
-                close: close, volume: Double.random(in: 1000...50000),
-                closeTime: time.addingTimeInterval(3599)
-            ))
-            price = close
         }
-        return candles
+        currentKLineTask?.resume()
     }
 }

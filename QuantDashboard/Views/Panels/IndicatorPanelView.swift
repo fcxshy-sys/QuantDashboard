@@ -185,9 +185,9 @@ struct IndicatorPanelCard: View {
 
             // 参数信息
             HStack(spacing: 16) {
-                paramItem(label: "周期", value: "\(result?.indicatorName ?? "")")
                 paramItem(label: "信号", value: direction.rawValue)
                 paramItem(label: "强度", value: result?.strength.displayName ?? "-")
+                paramItem(label: "值", value: String(format: "%.2f", result?.value ?? 0))
             }
         }
     }

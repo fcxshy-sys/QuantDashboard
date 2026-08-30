@@ -14,6 +14,7 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
     var onKLineUpdate: ((String, KLineInterval, CandleData) -> Void)?
     var onTradeUpdate: ((String, RealtimeTrade) -> Void)?
     var onTickerUpdate: ((String, Ticker24h) -> Void)?
+    var onConnectStatusChanged: ((Bool) -> Void)?
 
     private var webSocket: URLSessionWebSocketTask?
     private var session: URLSession?
@@ -227,7 +228,10 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
     }
 
     private func handleDisconnect() {
-        DispatchQueue.main.async { self.isConnected = false }
+        DispatchQueue.main.async {
+            self.isConnected = false
+            self.onConnectStatusChanged?(false)
+        }
         heartbeatTimer?.invalidate()
 
         guard reconnectAttempts < maxReconnectAttempts else { return }
@@ -244,7 +248,11 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
 extension GateIOWebSocketManager: URLSessionWebSocketDelegate {
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask,
                     didOpenWithProtocol protocol: String?) {
-        DispatchQueue.main.async { self.isConnected = true; self.reconnectAttempts = 0 }
+        DispatchQueue.main.async {
+            self.isConnected = true
+            self.reconnectAttempts = 0
+            self.onConnectStatusChanged?(true)
+        }
         receiveMessages()
     }
 

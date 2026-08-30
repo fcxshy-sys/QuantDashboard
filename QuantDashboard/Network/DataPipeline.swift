@@ -17,6 +17,8 @@ class DataPipeline: ObservableObject {
     @Published var ticker24h: Ticker24h?
     @Published var lastUpdateTime: Date = Date()
     @Published var connectionStatus: String = "未连接"
+    @Published var isLoading: Bool = false
+    @Published var errorMessage: String?
     @Published var activeExchange: ExchangeType = .gateIO
 
     private let gateWS = GateIOWebSocketManager()
@@ -31,7 +33,7 @@ class DataPipeline: ObservableObject {
 
     private func setupCallbacks() {
         gateWS.onKLineUpdate = { [weak self] sym, iv, candle in
-            self?.handleKLineUpdate(symbol: sym, interval: iv, candle: candle, exchange: .gateIO)
+            self?.handleKLineUpdate(symbol: sym, interval: iv, candle: candle)
         }
         gateWS.onTradeUpdate = { [weak self] _, trade in
             DispatchQueue.main.async {
@@ -45,6 +47,15 @@ class DataPipeline: ObservableObject {
                 self?.latestPrice = ticker.lastPrice
             }
         }
+        gateWS.onConnectStatusChanged = { [weak self] connected in
+            DispatchQueue.main.async {
+                if connected {
+                    self?.connectionStatus = "Gate.io 已连接"
+                } else {
+                    self?.connectionStatus = "重连中..."
+                }
+            }
+        }
     }
 
     func updateDataSource(_ config: DataSourceConfig) {}
@@ -53,6 +64,7 @@ class DataPipeline: ObservableObject {
     func start(for asset: TradeAsset, interval: KLineInterval) {
         currentAsset = asset
         currentInterval = interval
+        errorMessage = nil
 
         if asset.assetType == .preciousMetal {
             startGoldStream()
@@ -64,7 +76,10 @@ class DataPipeline: ObservableObject {
     func stopAll() {
         gateWS.disconnect()
         goldProvider.stopPolling()
-        DispatchQueue.main.async { self.connectionStatus = "已断开" }
+        DispatchQueue.main.async {
+            self.connectionStatus = "已断开"
+            self.isLoading = false
+        }
     }
 
     private func startCryptoStream(asset: TradeAsset, interval: KLineInterval) {
@@ -72,16 +87,27 @@ class DataPipeline: ObservableObject {
             DispatchQueue.main.async { self.connectionStatus = "不支持的资产" }
             return
         }
-        let streams = ["candle_\(Int(interval.intervalSeconds))_\(name)", "trades_\(name)", "tickers_\(name)"]
+
+        DispatchQueue.main.async {
+            self.connectionStatus = "连接中..."
+            self.isLoading = true
+        }
+
+        let streams = [
+            "candle_\(Int(interval.intervalSeconds))_\(name)",
+            "trades_\(name)",
+            "tickers_\(name)"
+        ]
         gateWS.connect(streams: streams)
         loadHistoricalKLines(exchange: .gateIO, asset: asset, interval: interval)
-        DispatchQueue.main.async {
-            self.activeExchange = .gateIO
-            self.connectionStatus = "Gate.io 已连接"
-        }
     }
 
     private func startGoldStream() {
+        DispatchQueue.main.async {
+            self.connectionStatus = "黄金数据连接中..."
+            self.isLoading = true
+        }
+
         goldProvider.onPriceUpdate = { [weak self] price, change, changePct in
             DispatchQueue.main.async {
                 self?.latestPrice = price
@@ -102,47 +128,60 @@ class DataPipeline: ObservableObject {
                 self.candles = newCandles
                 self.connectionStatus = "黄金数据已连接"
                 self.latestPrice = newCandles.last?.close ?? 0
+                self.isLoading = false
             }
             self.indicatorEngine.computeAll(candles: newCandles, asset: .xauUSD)
         }
 
+        goldProvider.onError = { [weak self] msg in
+            DispatchQueue.main.async {
+                self?.errorMessage = msg
+                self?.isLoading = false
+            }
+        }
+
         goldProvider.startPolling(interval: 5)
-        DispatchQueue.main.async { self.connectionStatus = "黄金数据连接中..." }
     }
 
     func loadHistoricalKLines(exchange: ExchangeType, asset: TradeAsset, interval: KLineInterval) {
-        let completion: ([CandleData]) -> Void = { [weak self] historicalCandles in
-            guard let self = self, !historicalCandles.isEmpty else { return }
+        guard let name = asset.gateIOName else { return }
+
+        gateWS.fetchHistoricalKLines(symbol: name, interval: interval, limit: 500) { [weak self] historicalCandles in
+            guard let self = self else { return }
+
             DispatchQueue.main.async {
+                if historicalCandles.isEmpty {
+                    self.errorMessage = "历史数据加载失败"
+                    self.isLoading = false
+                    return
+                }
                 self.candles = historicalCandles
                 self.lastUpdateTime = Date()
+                self.isLoading = false
             }
+
             self.indicatorEngine.computeAll(candles: historicalCandles, asset: asset)
         }
-
-        guard let name = asset.gateIOName else { return }
-        gateWS.fetchHistoricalKLines(symbol: name, interval: interval, limit: 500, completion: completion)
     }
 
-    private func handleKLineUpdate(symbol: String, interval: KLineInterval, candle: CandleData, exchange: ExchangeType) {
+    private func handleKLineUpdate(symbol: String, interval: KLineInterval, candle: CandleData) {
         guard interval == currentInterval else { return }
 
-        var cached = candles
-        if let lastIndex = cached.indices.last,
-           Calendar.current.isDate(cached[lastIndex].openTime, equalTo: candle.openTime, toGranularity: .second) {
-            cached[lastIndex] = candle
+        var updatedCandles = candles
+        if let lastIndex = updatedCandles.indices.last,
+           Calendar.current.isDate(updatedCandles[lastIndex].openTime, equalTo: candle.openTime, toGranularity: .second) {
+            updatedCandles[lastIndex] = candle
         } else {
-            cached.append(candle)
-            if cached.count > 1000 { cached.removeFirst(cached.count - 1000) }
+            updatedCandles.append(candle)
+            if updatedCandles.count > 1000 { updatedCandles.removeFirst(updatedCandles.count - 1000) }
         }
 
-        DispatchQueue.main.async {
-            self.candles = cached
-            self.latestPrice = candle.close
-            self.lastUpdateTime = Date()
-        }
+        candles = updatedCandles
+        latestPrice = candle.close
+        lastUpdateTime = Date()
+        errorMessage = nil
 
-        indicatorEngine.computeAll(candles: cached, asset: currentAsset)
+        indicatorEngine.computeAll(candles: updatedCandles, asset: currentAsset)
     }
 
     func switchAsset(to asset: TradeAsset) {
