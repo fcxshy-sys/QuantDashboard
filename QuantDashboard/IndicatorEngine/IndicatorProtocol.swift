@@ -84,7 +84,7 @@ class IndicatorBase: IndicatorProtocol {
         let multiplier = 2.0 / Double(period + 1)
 
         // 前 period-1 个值为 nil
-        for i in 0..<min(period - 1, values.count) {
+        for _ in 0..<min(period - 1, values.count) {
             result.append(nil)
         }
 

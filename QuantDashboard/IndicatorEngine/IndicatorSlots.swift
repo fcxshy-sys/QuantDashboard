@@ -410,7 +410,7 @@ class CustomIndicator3: IndicatorBase {
                          emaF[i] > emaS[i] ? 1 : -1
 
             // Supertrend 简化（用 ATR 方向近似）
-            let atr = computeATR(candles: candles, period: stATR, upTo: i)
+            _ = computeATR(candles: candles, period: stATR, upTo: i)
             let stDir = src > emaS[i] ? 1 : -1  // 简化
             let mSt = stDir
 

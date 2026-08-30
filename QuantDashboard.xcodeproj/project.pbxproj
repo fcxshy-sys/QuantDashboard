@@ -79,6 +79,12 @@
 		A91022 /* TradeJournalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91022; };
 		A91023 /* SnapshotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91023; };
 		A91024 /* LandscapeButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91024; };
+		A91025 /* TradingCalculatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91025; };
+		A91026 /* CurrencyConverterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91026; };
+		A91027 /* AlertCenterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91027; };
+		A91028 /* PerformanceTrackerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91028; };
+		A91029 /* AssetDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91029; };
+		A91030 /* ExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B91030; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -158,6 +164,12 @@
 		B91022 /* TradeJournalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradeJournalView.swift; sourceTree = "<group>"; };
 		B91023 /* SnapshotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotView.swift; sourceTree = "<group>"; };
 		B91024 /* LandscapeButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandscapeButton.swift; sourceTree = "<group>"; };
+		B91025 /* TradingCalculatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TradingCalculatorView.swift; sourceTree = "<group>"; };
+		B91026 /* CurrencyConverterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyConverterView.swift; sourceTree = "<group>"; };
+		B91027 /* AlertCenterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertCenterView.swift; sourceTree = "<group>"; };
+		B91028 /* PerformanceTrackerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTrackerView.swift; sourceTree = "<group>"; };
+		B91029 /* AssetDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetDetailView.swift; sourceTree = "<group>"; };
+		B91030 /* ExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportView.swift; sourceTree = "<group>"; };
 
 		/* Product */
 		B90001 /* QuantDashboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuantDashboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -306,6 +318,12 @@
 				D10025 /* TradeJournal */,
 				D10026 /* Snapshot */,
 				D10027 /* Components */,
+				D10028 /* Calculator */,
+				D10029 /* Converter */,
+				D1002A /* NotificationCenter */,
+				D1002B /* Performance */,
+				D1002C /* AssetDetail */,
+				D1002D /* Export */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -431,6 +449,54 @@
 			path = Components;
 			sourceTree = "<group>";
 		};
+		D10028 /* Calculator */ = {
+			isa = PBXGroup;
+			children = (
+				B91025 /* TradingCalculatorView.swift */,
+			);
+			path = Calculator;
+			sourceTree = "<group>";
+		};
+		D10029 /* Converter */ = {
+			isa = PBXGroup;
+			children = (
+				B91026 /* CurrencyConverterView.swift */,
+			);
+			path = Converter;
+			sourceTree = "<group>";
+		};
+		D1002A /* NotificationCenter */ = {
+			isa = PBXGroup;
+			children = (
+				B91027 /* AlertCenterView.swift */,
+			);
+			path = NotificationCenter;
+			sourceTree = "<group>";
+		};
+		D1002B /* Performance */ = {
+			isa = PBXGroup;
+			children = (
+				B91028 /* PerformanceTrackerView.swift */,
+			);
+			path = Performance;
+			sourceTree = "<group>";
+		};
+		D1002C /* AssetDetail */ = {
+			isa = PBXGroup;
+			children = (
+				B91029 /* AssetDetailView.swift */,
+			);
+			path = AssetDetail;
+			sourceTree = "<group>";
+		};
+		D1002D /* Export */ = {
+			isa = PBXGroup;
+			children = (
+				B91030 /* ExportView.swift */,
+			);
+			path = Export;
+			sourceTree = "<group>";
+		};
 		D10020 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -548,6 +614,12 @@
 				A91022 /* TradeJournalView.swift */,
 				A91023 /* SnapshotView.swift */,
 				A91024 /* LandscapeButton.swift */,
+				A91025 /* TradingCalculatorView.swift */,
+				A91026 /* CurrencyConverterView.swift */,
+				A91027 /* AlertCenterView.swift */,
+				A91028 /* PerformanceTrackerView.swift */,
+				A91029 /* AssetDetailView.swift */,
+				A91030 /* ExportView.swift */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

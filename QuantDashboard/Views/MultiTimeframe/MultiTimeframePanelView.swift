@@ -81,7 +81,6 @@ struct MultiTimeframePanelView: View {
                     resonanceStat(label: "无共振", count: neutralCount, color: LiquidGlassTheme.neutralAccent)
                 }
                 
-                let total = 5
                 if bullishCount >= 3 || bearishCount >= 3 {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.circle.fill")

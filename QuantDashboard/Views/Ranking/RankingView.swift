@@ -149,8 +149,6 @@ struct RankingView: View {
                       let ticker = json.first else { return }
                 
                 let lastStr = "\(ticker["last"] ?? "0")"
-                let highStr = "\(ticker["high_24h"] ?? "0")"
-                let lowStr = "\(ticker["low_24h"] ?? "0")"
                 let volStr = "\(ticker["base_volume_24h"] ?? "0")"
                 let pctStr = "\(ticker["change_percentage"] ?? "0")"
                 
