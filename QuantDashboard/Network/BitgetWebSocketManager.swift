@@ -226,15 +226,20 @@ class BitgetWebSocketManager: NSObject, ObservableObject {
     }
 
     private func handleDisconnect() {
-        DispatchQueue.main.async { self.isConnected = false }
-        heartbeatTimer?.invalidate()
-
-        guard reconnectAttempts < maxReconnectAttempts else { return }
+        guard reconnectAttempts < maxReconnectAttempts else {
+            DispatchQueue.main.async { self.isConnected = false }
+            return
+        }
         let delay = min(pow(2.0, Double(reconnectAttempts)), 30)
         reconnectAttempts += 1
 
-        reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
-            self?.connect(streams: self?.currentStreams ?? [])
+        DispatchQueue.main.async {
+            self.heartbeatTimer?.invalidate()
+            self.heartbeatTimer = nil
+            self.isConnected = false
+            self.reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
+                self?.connect(streams: self?.currentStreams ?? [])
+            }
         }
     }
 }

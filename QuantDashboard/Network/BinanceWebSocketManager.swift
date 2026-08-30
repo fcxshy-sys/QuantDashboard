@@ -264,26 +264,29 @@ class BinanceWebSocketManager: NSObject, ObservableObject {
 
     // MARK: - 断线重连
     private func handleDisconnect() {
-        DispatchQueue.main.async { self.isConnected = false }
-        heartbeatTimer?.invalidate()
-        pingTimer?.invalidate()
-
         guard reconnectAttempts < maxReconnectAttempts else {
-#if DEBUG
+            DispatchQueue.main.async { self.isConnected = false }
+            #if DEBUG
             print("[BinanceWS] 超过最大重连次数，停止重连")
-#endif
+            #endif
             return
         }
 
         let delay = min(pow(2.0, Double(reconnectAttempts)), 30)
         reconnectAttempts += 1
 
-#if DEBUG
+        #if DEBUG
         print("[BinanceWS] \(delay)秒后重连 (第\(reconnectAttempts)次)")
-#endif
-        reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
-            guard let self = self else { return }
-            self.connect(streams: self.currentStreams)
+        #endif
+        DispatchQueue.main.async {
+            self.heartbeatTimer?.invalidate()
+            self.heartbeatTimer = nil
+            self.pingTimer?.invalidate()
+            self.pingTimer = nil
+            self.isConnected = false
+            self.reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
+                self?.connect(streams: self.currentStreams)
+            }
         }
     }
 }

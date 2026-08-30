@@ -34,7 +34,7 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
 
     func connect(streams: [String]) {
         currentStreams = streams
-        disconnect()
+        resetConnection()
 
         let config = URLSessionConfiguration.default
         config.waitsForConnectivity = true
@@ -58,13 +58,23 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
         webSocket = nil
         session?.invalidateAndCancel()
         session = nil
-        DispatchQueue.main.async {
-            self.heartbeatTimer?.invalidate()
-            self.heartbeatTimer = nil
-            self.reconnectTimer?.invalidate()
-            self.reconnectTimer = nil
-            self.isConnected = false
-        }
+        heartbeatTimer?.invalidate()
+        heartbeatTimer = nil
+        reconnectTimer?.invalidate()
+        reconnectTimer = nil
+        isConnected = false
+    }
+
+    private func resetConnection() {
+        webSocket?.cancel(with: .goingAway, reason: nil)
+        webSocket = nil
+        session?.invalidateAndCancel()
+        session = nil
+        heartbeatTimer?.invalidate()
+        heartbeatTimer = nil
+        reconnectTimer?.invalidate()
+        reconnectTimer = nil
+        isReconnecting = false
     }
 
     func switchStreams(_ streams: [String]) {
@@ -237,8 +247,6 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
         DispatchQueue.main.async {
             self.isConnected = false
             self.onConnectStatusChanged?(false)
-            self.heartbeatTimer?.invalidate()
-            self.heartbeatTimer = nil
 
             guard self.reconnectAttempts < self.maxReconnectAttempts, !self.isReconnecting else { return }
             self.isReconnecting = true
@@ -260,6 +268,9 @@ extension GateIOWebSocketManager: URLSessionWebSocketDelegate {
         DispatchQueue.main.async {
             self.isConnected = true
             self.reconnectAttempts = 0
+            self.isReconnecting = false
+            self.reconnectTimer?.invalidate()
+            self.reconnectTimer = nil
             self.onConnectStatusChanged?(true)
         }
         receiveMessages()
