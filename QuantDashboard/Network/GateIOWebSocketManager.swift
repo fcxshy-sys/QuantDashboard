@@ -26,6 +26,11 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
     private let baseWSSURL = "wss://api.gateio.ws/ws/"
     private let baseRESTURL = "https://api.gateio.ws/api/v4"
 
+    struct StreamInfo {
+        let channel: String
+        let pair: String
+    }
+
     func connect(streams: [String]) {
         currentStreams = streams
         disconnect()
@@ -62,18 +67,32 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
         connect(streams: streams)
     }
 
+    private func parseStream(_ stream: String) -> StreamInfo? {
+        let parts = stream.split(separator: "_")
+        guard parts.count >= 2 else { return nil }
+
+        let pair = String(parts.last!)
+
+        if parts[0] == "candle" && parts.count >= 3 {
+            let period = parts[1]
+            let channel = "spot.candle.\(period)s"
+            return StreamInfo(channel: channel, pair: pair)
+        } else if parts[0] == "trades" {
+            return StreamInfo(channel: "spot.trades", pair: pair)
+        } else if parts[0] == "tickers" {
+            return StreamInfo(channel: "spot.tickers", pair: pair)
+        }
+        return nil
+    }
+
     private func subscribeStreams(_ streams: [String]) {
         for stream in streams {
-            let parts = stream.split(separator: "_")
-            guard parts.count >= 2 else { continue }
-
-            let pair = String(parts.last!)
-            var channel = parts.dropLast().joined(separator: "_")
+            guard let info = parseStream(stream) else { continue }
 
             let sub: [String: Any] = [
                 "time": Int(Date().timeIntervalSince1970),
-                "channel": "spot.\(channel)",
-                "payload": [pair]
+                "channel": info.channel,
+                "payload": [info.pair]
             ]
             guard let data = try? JSONSerialization.data(withJSONObject: sub),
                   let str = String(data: data, encoding: .utf8) else { continue }
@@ -113,35 +132,37 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
               let data = text.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
 
-        guard let channel = json["channel"] as? String,
-              let result = json["result"] as? [String: Any] ?? (json["result"] as? [[String: Any]])?.first else { return }
+        guard let channel = json["channel"] as? String else { return }
 
         if channel.contains("candle") {
-            parseKLine(result, channel: channel)
+            if let result = json["result"] as? [String: Any] {
+                parseKLine(result, channel: channel)
+            }
         } else if channel.contains("trades") {
             if let arr = json["result"] as? [[String: Any]], let first = arr.first {
                 parseTrade(first, channel: channel)
             }
         } else if channel.contains("tickers") {
-            parseTicker(result, channel: channel)
+            if let result = json["result"] as? [String: Any] {
+                parseTicker(result, channel: channel)
+            }
         }
     }
 
     private func parseKLine(_ result: [String: Any], channel: String) {
-        guard let pair = (result["pair"] as? String) ?? channel.split(separator: ".").last.map(String.init),
-              let ts = result["t"] as? TimeInterval,
-              let o = result["o"] as? String,
-              let h = result["h"] as? String,
-              let l = result["l"] as? String,
-              let c = result["c"] as? String,
-              let v = result["v"] as? String
-        else { return }
+        let pair = (result["pair"] as? String) ?? channel.split(separator: ".").last.map(String.init) ?? ""
+        guard let ts = result["t"] as? TimeInterval else { return }
+        let o = "\(result["o"] ?? "0")"
+        let h = "\(result["h"] ?? "0")"
+        let l = "\(result["l"] ?? "0")"
+        let c = "\(result["c"] ?? "0")"
+        let v = "\(result["v"] ?? "0")"
 
         let intervalMap: [String: KLineInterval] = [
             "60": .m1, "300": .m5, "900": .m15,
             "3600": .h1, "14400": .h4, "86400": .d1
         ]
-        let intervalKey = channel.components(separatedBy: ".").last ?? ""
+        let intervalKey = channel.components(separatedBy: ".").first { $0.allSatisfy(\.isNumber) } ?? ""
         guard let interval = intervalMap[intervalKey] else { return }
 
         let candle = CandleData(
@@ -158,10 +179,12 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
     }
 
     private func parseTrade(_ result: [String: Any], channel: String) {
-        guard let pair = channel.split(separator: ".").last.map(String.init),
-              let price = Double("\(result["price"] ?? "0")"),
-              let amount = Double("\(result["amount"] ?? "0")"),
-              let ts = result["create_time"] as? TimeInterval
+        let pair = channel.components(separatedBy: ".").last ?? ""
+        guard let priceStr = result["price"] as? String ?? (result["price"] as? NSNumber)?.stringValue,
+              let price = Double(priceStr),
+              let amountStr = result["amount"] as? String ?? (result["amount"] as? NSNumber)?.stringValue,
+              let amount = Double(amountStr),
+              let ts = result["create_time"] as? TimeInterval ?? (result["create_time"] as? NSNumber)?.doubleValue
         else { return }
 
         let trade = RealtimeTrade(
@@ -176,13 +199,18 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
     }
 
     private func parseTicker(_ result: [String: Any], channel: String) {
-        guard let pair = (result["pair"] as? String) ?? channel.split(separator: ".").last.map(String.init),
-              let last = Double("\(result["last"] ?? "0")"),
-              let high24 = Double("\(result["high_24h"] ?? "0")"),
-              let low24 = Double("\(result["low_24h"] ?? "0")"),
-              let vol24 = Double("\(result["base_volume_24h"] ?? "0")"),
-              let changePct = Double("\(result["change_percentage"] ?? "0")")
-        else { return }
+        let pair = (result["pair"] as? String) ?? channel.components(separatedBy: ".").last ?? ""
+        let lastStr = "\(result["last"] ?? "0")"
+        let highStr = "\(result["high_24h"] ?? "0")"
+        let lowStr = "\(result["low_24h"] ?? "0")"
+        let volStr = "\(result["base_volume_24h"] ?? "0")"
+        let pctStr = "\(result["change_percentage"] ?? "0")"
+
+        guard let last = Double(lastStr) else { return }
+        let high24 = Double(highStr) ?? 0
+        let low24 = Double(lowStr) ?? 0
+        let vol24 = Double(volStr) ?? 0
+        let changePct = Double(pctStr) ?? 0
 
         let change = last * changePct / 100
         let ticker = Ticker24h(
@@ -216,7 +244,6 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
 extension GateIOWebSocketManager: URLSessionWebSocketDelegate {
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask,
                     didOpenWithProtocol protocol: String?) {
-        print("[GateWS] 连接成功")
         DispatchQueue.main.async { self.isConnected = true; self.reconnectAttempts = 0 }
         receiveMessages()
     }
@@ -232,7 +259,6 @@ extension GateIOWebSocketManager {
     func fetchHistoricalKLines(symbol: String, interval: KLineInterval,
                                 limit: Int = 500,
                                 completion: @escaping ([CandleData]) -> Void) {
-        let intervalSec = Int(interval.intervalSeconds)
         let urlString = "\(baseRESTURL)/spot/candlesticks?currency_pair=\(symbol)&interval=\(interval.gateIOParameter)&limit=\(limit)"
         guard let url = URL(string: urlString) else { completion([]); return }
 
