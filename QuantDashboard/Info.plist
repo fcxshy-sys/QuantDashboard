@@ -43,24 +43,11 @@
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
 
-    <!-- 启动画面 -->
-    <key>UILaunchStoryboardName</key>
-    <string>LaunchScreen</string>
-
     <!-- 全屏模式 -->
     <key>UIRequiresFullScreen</key>
     <true/>
 
-    <!-- 背景模式 -->
-    <key>UIBackgroundModes</key>
-    <array>
-        <string>audio</string>
-        <string>processing</string>
-        <string>fetch</string>
-        <string>remote-notification</string>
-    </array>
-
-    <!-- 网络安全配置（允许 HTTP 访问，TrollStore 部署需要） -->
+    <!-- 网络安全配置（允许 HTTP 访问） -->
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsArbitraryLoads</key>
@@ -72,10 +59,6 @@
     <!-- 本地通知权限 -->
     <key>UIUserNotificationsUsageDescription</key>
     <string>9y看板需要通知权限，在指标产生共振信号时向您发送本地告警通知。</string>
-
-    <!-- 后台音频描述 -->
-    <key>UIBackgroundModesDescription</key>
-    <string>保持 WebSocket 实时行情连接</string>
 
     <!-- 最低 iOS 版本 -->
     <key>MinimumOSVersion</key>

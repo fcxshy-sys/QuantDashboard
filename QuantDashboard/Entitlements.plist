@@ -2,65 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- ============================================= -->
-    <!-- TrollStore（巨魔商店）特权声明文件              -->
-    <!-- 此文件为 App 提供后台保活、网络访问等私有权限    -->
-    <!-- ============================================= -->
-
-    <!-- 基础应用权限 -->
-    <key>com.apple.security.app-sandbox</key>
-    <false/>
-
-    <!-- 后台任务权限（Processing） -->
-    <key>com.apple.developer.background-tasks</key>
-    <true/>
-
-    <!-- 音频后台播放权限 -->
-    <key>com.apple.developer.audiobackground</key>
-    <true/>
-
-    <!-- 后台网络刷新 -->
-    <key>com.apple.developer.networking.background-explanation</key>
-    <string>维持 WebSocket 实时行情数据推送连接</string>
-
-    <!-- 网络客户端权限（入站/出站） -->
+    <!-- 网络访问 -->
     <key>com.apple.security.network.client</key>
     <true/>
-    <key>com.apple.security.network.server</key>
-    <true/>
 
-    <!-- 本地网络访问权限（iOS 14+） -->
-    <key>com.apple.developer.networking.localnetwork.usage-description</key>
-    <string>量化看板需要本地网络权限以连接行情数据服务</string>
-
-    <!-- 通知权限 -->
-    <key>com.apple.developer.aps-environment</key>
-    <string>development</string>
-
-    <!-- 位置后台权限（作为辅助保活手段） -->
-    <key>com.apple.developer.location.background-only</key>
-    <true/>
-
-    <!-- UI 状态保留（TrollStore 特权） -->
-    <key>com.apple.springboard.allow-all-liquids</key>
-    <true/>
-
-    <!-- 私有 API 使用声明（TrollStore 绕过签名验证） -->
+    <!-- TrollStore: 禁用沙盒 -->
     <key>com.apple.private.security.no-sandbox</key>
     <true/>
-
-    <!-- 允许使用私有框架（WebSocket 保活需要） -->
-    <key>com.apple.private.tcc.allow</key>
-    <array>
-        <string>kTCCServiceMicrophone</string>
-        <string>kTCCServiceCamera</string>
-    </array>
-
-    <!-- TrollStore 特定：免签部署标识 -->
-    <key>com.opa334.TrollStore</key>
-    <dict>
-        <key> persistent  </key>
-        <true/>
-    </dict>
 </dict>
 </plist>
