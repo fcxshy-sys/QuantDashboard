@@ -132,6 +132,9 @@ class GoldDataProvider: ObservableObject {
             }
 
             var candles: [CandleData] = []
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd"
+            formatter.locale = Locale(identifier: "en_US_POSIX")
             for line in klines {
                 let parts = line.components(separatedBy: ",")
                 guard parts.count >= 6,
@@ -142,8 +145,6 @@ class GoldDataProvider: ObservableObject {
                       let volume = Double(parts[5])
                 else { continue }
 
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
                 let date = formatter.date(from: parts[0]) ?? Date()
 
                 let candle = CandleData(
