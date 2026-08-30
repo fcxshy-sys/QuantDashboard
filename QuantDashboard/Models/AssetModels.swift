@@ -13,44 +13,20 @@ enum AssetType: String, CaseIterable, Codable, Identifiable {
     var id: String { rawValue }
 }
 
-// MARK: - 交易所枚举
+// MARK: - 交易所枚举（仅 Gate.io）
 enum ExchangeType: String, CaseIterable, Codable, Identifiable {
-    case binance = "Binance"
-    case bitget = "Bitget"
     case gateIO = "Gate.io"
-
     var id: String { rawValue }
-
     var displayName: String { rawValue }
-
-    var icon: String {
-        switch self {
-        case .binance: return "circle.hexagongrid.fill"
-        case .bitget: return "bolt.circle.fill"
-        case .gateIO: return "gate"
-        }
-    }
-
-    var supportsGold: Bool {
-        switch self {
-        case .binance: return false
-        case .bitget: return false
-        case .gateIO: return false
-        }
-    }
 }
 
 // MARK: - 数据源优先级设置
 struct DataSourceConfig: Codable {
     var primary: ExchangeType
     var fallback1: ExchangeType?
-    var fallback2: ExchangeType?
 
     var ordered: [ExchangeType] {
-        var list = [primary]
-        if let f1 = fallback1, f1 != primary { list.append(f1) }
-        if let f2 = fallback2, f2 != primary, f2 != fallback1 { list.append(f2) }
-        return list
+        [primary]
     }
 }
 
@@ -75,30 +51,6 @@ enum TradeAsset: String, CaseIterable, Codable, Identifiable {
             return .crypto
         case .xauUSD:
             return .preciousMetal
-        }
-    }
-
-    /// Binance WebSocket 流名称
-    var binanceStreamName: String? {
-        switch self {
-        case .btcUSDT: return "btcusdt"
-        case .ethUSDT: return "ethusdt"
-        case .solUSDT: return "solusdt"
-        case .bnbUSDT: return "bnbusdt"
-        case .xrpUSDT: return "xrpusdt"
-        case .xauUSD: return nil
-        }
-    }
-
-    /// Bitget 交易对名称
-    var bitgetName: String? {
-        switch self {
-        case .btcUSDT: return "BTCUSDT"
-        case .ethUSDT: return "ETHUSDT"
-        case .solUSDT: return "SOLUSDT"
-        case .bnbUSDT: return "BNBUSDT"
-        case .xrpUSDT: return "XRPUSDT"
-        case .xauUSD: return nil
         }
     }
 

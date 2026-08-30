@@ -9,7 +9,7 @@
     <key>CFBundleDisplayName</key>
     <string>9y看板</string>
     <key>CFBundleIdentifier</key>
-    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <string>com.quantdashboard.app</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>CFBundleShortVersionString</key>
@@ -17,22 +17,17 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleExecutable</key>
-    <string>$(EXECUTABLE_NAME)</string>
+    <string>QuantDashboard</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>UILaunchScreen</key>
-    <dict>
-        <key>UIColorName</key>
-        <string>SystemBackgroundColor</string>
-    </dict>
+    <dict/>
     <key>UISupportedInterfaceOrientations</key>
     <array>
         <string>UIInterfaceOrientationPortrait</string>
     </array>
-    <key>UIStatusBarStyle</key>
-    <string>UIStatusBarStyleLightContent</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
     <key>UIRequiresFullScreen</key>
@@ -41,8 +36,6 @@
     <dict>
         <key>NSAllowsArbitraryLoads</key>
         <true/>
-        <key>NSAllowsLocalNetworking</key>
-        <true/>
     </dict>
     <key>UIUserNotificationsUsageDescription</key>
     <string>9y看板需要通知权限，在指标产生共振信号时向您发送本地告警通知。</string>
@@ -50,7 +43,5 @@
     <string>16.0</string>
     <key>UIUserInterfaceStyle</key>
     <string>Dark</string>
-    <key>CADisableMinimumFrameDuration</key>
-    <true/>
 </dict>
 </plist>

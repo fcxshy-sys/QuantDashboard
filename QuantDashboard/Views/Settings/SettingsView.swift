@@ -1,13 +1,6 @@
-// ============================================================
-// SettingsView.swift
-// QuantDashboard - 设置视图
-// ============================================================
-
 import SwiftUI
 
-// MARK: - 设置视图
 struct SettingsView: View {
-
     @ObservedObject var indicatorVM: IndicatorViewModel
 
     @State private var editingIndex: Int? = nil
@@ -17,9 +10,6 @@ struct SettingsView: View {
     @State private var editWeight: Double = 0.2
 
     @StateObject private var themeManager = ThemeManager.shared
-    @State private var primaryExchange: ExchangeType = .binance
-    @State private var fallback1: ExchangeType? = .bitget
-    @State private var fallback2: ExchangeType? = .gateIO
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
@@ -32,13 +22,8 @@ struct SettingsView: View {
                 }
                 .padding(.horizontal, 4)
 
-                // 主题切换
                 themeCard
 
-                // 交易所数据源
-                exchangeCard
-
-                // 指标参数配置卡片
                 ForEach(1...5, id: \.self) { index in
                     IndicatorConfigCard(
                         index: index,
@@ -77,7 +62,6 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - 主题切换卡片
     private var themeCard: some View {
         GlassCard(title: "外观", icon: "paintbrush") {
             HStack {
@@ -95,63 +79,6 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - 交易所数据源卡片
-    private var exchangeCard: some View {
-        GlassCard(title: "数据源", icon: "arrow.triangle.2.circlepath") {
-            VStack(spacing: 12) {
-                exchangeRow(label: "主数据源", selection: Binding(
-                    get: { primaryExchange },
-                    set: { primaryExchange = $0 ?? .binance }
-                ))
-                exchangeRow(label: "备用 1", selection: Binding(
-                    get: { fallback1 },
-                    set: { fallback1 = $0 }
-                ))
-                exchangeRow(label: "备用 2", selection: Binding(
-                    get: { fallback2 },
-                    set: { fallback2 = $0 }
-                ))
-
-                Button {
-                    let config = DataSourceConfig(
-                        primary: primaryExchange,
-                        fallback1: fallback1,
-                        fallback2: fallback2
-                    )
-                    DataPipeline.shared.updateDataSource(config)
-                    DataPipeline.shared.switchAsset(to: DataPipeline.shared.currentAsset)
-                } label: {
-                    Text("应用并重连")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(Capsule().fill(LiquidGlassTheme.neutralAccent))
-                }
-                .buttonStyle(.plain)
-            }
-        }
-    }
-
-    private func exchangeRow(label: String, selection: Binding<ExchangeType?>) -> some View {
-        HStack {
-            Text(label)
-                .font(.system(size: 13))
-                .foregroundStyle(LiquidGlassTheme.secondaryText)
-                .frame(width: 60, alignment: .leading)
-            Spacer()
-            Picker("", selection: selection) {
-                Text("无").tag(nil as ExchangeType?)
-                ForEach(ExchangeType.allCases) { ex in
-                    Text(ex.displayName).tag(ex as ExchangeType?)
-                }
-            }
-            .pickerStyle(.menu)
-            .tint(LiquidGlassTheme.primaryText)
-        }
-    }
-
-    // MARK: - 保存配置
     private func saveConfig(for index: Int) {
         indicatorVM.updateConfig(
             for: index,
@@ -162,7 +89,6 @@ struct SettingsView: View {
         )
     }
 
-    // MARK: - 加载配置到编辑器
     private func loadConfig(for index: Int) {
         guard let config = indicatorVM.configs[safe: index] else { return }
         editPeriod = Double(config.period)
@@ -171,7 +97,6 @@ struct SettingsView: View {
         editWeight = config.weight
     }
 
-    // MARK: - 共振阈值卡片
     private var resonanceThresholdCard: some View {
         GlassCard(title: "共振阈值", icon: "target") {
             VStack(spacing: 12) {
@@ -195,17 +120,16 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - 关于信息
     private var aboutCard: some View {
         GlassCard(title: "关于", icon: "info.circle") {
             VStack(alignment: .leading, spacing: 8) {
-                Text("QuantDashboard 量化看板")
+                Text("9y看板 量化交易")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(LiquidGlassTheme.primaryText)
                 Text("版本 1.0.0")
                     .font(.system(size: 12))
                     .foregroundStyle(LiquidGlassTheme.tertiaryText)
-                Text("TrollStore 免签部署版本")
+                Text("Gate.io 数据源 · TrollStore 部署")
                     .font(.system(size: 12))
                     .foregroundStyle(LiquidGlassTheme.tertiaryText)
             }
@@ -213,9 +137,7 @@ struct SettingsView: View {
     }
 }
 
-// MARK: - 指标配置卡片
 struct IndicatorConfigCard: View {
-
     let index: Int
     let config: IndicatorConfig?
     let isEditing: Bool
@@ -229,7 +151,6 @@ struct IndicatorConfigCard: View {
     var body: some View {
         GlassCard(direction: .neutral) {
             VStack(spacing: 10) {
-                // 顶行
                 HStack {
                     ZStack {
                         Circle()
@@ -251,7 +172,6 @@ struct IndicatorConfigCard: View {
 
                     Spacer()
 
-                    // 开关
                     Toggle("", isOn: Binding(
                         get: { config?.isEnabled ?? true },
                         set: { _ in onToggle() }
@@ -259,7 +179,6 @@ struct IndicatorConfigCard: View {
                     .tint(LiquidGlassTheme.bullishAccent)
                     .labelsHidden()
 
-                    // 编辑按钮
                     Button(action: onEdit) {
                         Image(systemName: isEditing ? "checkmark.circle.fill" : "pencil.circle.fill")
                             .font(.system(size: 22))
@@ -270,11 +189,8 @@ struct IndicatorConfigCard: View {
                     .buttonStyle(.plain)
                 }
 
-                // 编辑滑块区
                 if isEditing {
-                    Divider()
-                        .background(Color.white.opacity(0.06))
-
+                    Divider().background(Color.white.opacity(0.06))
                     VStack(spacing: 10) {
                         sliderRow(label: "周期", value: $editPeriod, range: 5...100, step: 1, format: "%.0f")
                         sliderRow(label: "阈值", value: $editThreshold, range: 10...100, step: 5, format: "%.0f")
@@ -303,7 +219,6 @@ struct IndicatorConfigCard: View {
     }
 }
 
-// MARK: - Array 安全下标扩展
 extension Array {
     subscript(safe index: Int) -> Element? {
         indices.contains(index) ? self[index] : nil

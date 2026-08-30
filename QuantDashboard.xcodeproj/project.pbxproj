@@ -19,10 +19,8 @@
 		A20004 /* IndicatorEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20004; };
 
 		/* Network */
-		A30001 /* BinanceWebSocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30001; };
 		A30002 /* GoldDataProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30002; };
 		A30003 /* DataPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30003; };
-		A30004 /* BitgetWebSocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30004; };
 		A30005 /* GateIOWebSocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B30005; };
 
 		/* Services */
@@ -336,10 +334,8 @@
 				A20002 /* IndicatorSlots.swift */,
 				A20003 /* SignalRadarEngine.swift */,
 				A20004 /* IndicatorEngine.swift */,
-				A30001 /* BinanceWebSocketManager.swift */,
 				A30002 /* GoldDataProvider.swift */,
 				A30003 /* DataPipeline.swift */,
-				A30004 /* BitgetWebSocketManager.swift */,
 				A30005 /* GateIOWebSocketManager.swift */,
 				A40001 /* LocalAlertManager.swift */,
 				A40002 /* ThemeManager.swift */,
