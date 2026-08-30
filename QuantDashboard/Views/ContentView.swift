@@ -92,7 +92,9 @@ struct ContentView: View {
         .preferredColorScheme(themeManager.isDarkMode ? .dark : .light)
         .onAppear {
             LocalAlertManager.shared.requestPermission()
-            marketVM.start()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                marketVM.start()
+            }
         }
         .onDisappear { marketVM.stop() }
         .fullScreenCover(isPresented: $showLandscape) {

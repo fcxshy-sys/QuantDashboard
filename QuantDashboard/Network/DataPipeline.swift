@@ -1,6 +1,6 @@
 // ============================================================
 // DataPipeline.swift
-// QuantDashboard - 数据管道（仅 Gate.io）
+// QuantDashboard - 数据管道（仅 Gate.io）— Crash-safe 重构版
 // ============================================================
 
 import Foundation
@@ -21,17 +21,19 @@ class DataPipeline: ObservableObject {
     @Published var errorMessage: String?
     @Published var activeExchange: ExchangeType = .gateIO
 
-    private let gateWS = GateIOWebSocketManager()
+    private var gateWS: GateIOWebSocketManager?
     private let goldProvider = GoldDataProvider()
     private let indicatorEngine = IndicatorEngine.shared
 
     private var cancellables = Set<AnyCancellable>()
+    private var isStarted = false
 
     private init() {
         setupCallbacks()
     }
 
     private func setupCallbacks() {
+        guard let gateWS = gateWS else { return }
         gateWS.onKLineUpdate = { [weak self] sym, iv, candle in
             self?.handleKLineUpdate(symbol: sym, interval: iv, candle: candle)
         }
@@ -49,11 +51,7 @@ class DataPipeline: ObservableObject {
         }
         gateWS.onConnectStatusChanged = { [weak self] connected in
             DispatchQueue.main.async {
-                if connected {
-                    self?.connectionStatus = "Gate.io 已连接"
-                } else {
-                    self?.connectionStatus = "重连中..."
-                }
+                self?.connectionStatus = connected ? "Gate.io 已连接" : "重连中..."
             }
         }
     }
@@ -74,8 +72,10 @@ class DataPipeline: ObservableObject {
     }
 
     func stopAll() {
-        gateWS.disconnect()
+        gateWS?.disconnect()
+        gateWS = nil
         goldProvider.stopPolling()
+        isStarted = false
         DispatchQueue.main.async {
             self.connectionStatus = "已断开"
             self.isLoading = false
@@ -93,19 +93,52 @@ class DataPipeline: ObservableObject {
             self.isLoading = true
         }
 
+        // Create fresh WebSocket manager for each connection
+        let ws = GateIOWebSocketManager()
+
+        // Setup callbacks on the new instance
+        ws.onKLineUpdate = { [weak self] sym, iv, candle in
+            self?.handleKLineUpdate(symbol: sym, interval: iv, candle: candle)
+        }
+        ws.onTradeUpdate = { [weak self] _, trade in
+            DispatchQueue.main.async {
+                self?.latestPrice = trade.price
+                self?.lastUpdateTime = trade.time
+            }
+        }
+        ws.onTickerUpdate = { [weak self] _, ticker in
+            DispatchQueue.main.async {
+                self?.ticker24h = ticker
+                self?.latestPrice = ticker.lastPrice
+            }
+        }
+        ws.onConnectStatusChanged = { [weak self] connected in
+            DispatchQueue.main.async {
+                self?.connectionStatus = connected ? "Gate.io 已连接" : "重连中..."
+            }
+        }
+
+        self.gateWS = ws
+
         let streams = [
             "candle_\(Int(interval.intervalSeconds))_\(name)",
             "trades_\(name)",
             "tickers_\(name)"
         ]
-        gateWS.connect(streams: streams)
+
+        // Delay connection by 1s to let UI settle
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self = self else { return }
+            ws.connect(streams: streams)
+        }
+
         loadHistoricalKLines(exchange: .gateIO, asset: asset, interval: interval)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 8) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self] in
             guard let self = self else { return }
             if self.connectionStatus == "连接中..." {
                 self.connectionStatus = "连接超时，自动重试..."
-                self.gateWS.connect(streams: streams)
+                self.gateWS?.connect(streams: streams)
             }
         }
     }
@@ -137,7 +170,6 @@ class DataPipeline: ObservableObject {
                 self.connectionStatus = "黄金数据已连接"
                 self.latestPrice = newCandles.last?.close ?? 0
                 self.isLoading = false
-
                 self.indicatorEngine.computeAll(candles: newCandles, asset: .xauUSD)
             }
         }
@@ -155,9 +187,8 @@ class DataPipeline: ObservableObject {
     func loadHistoricalKLines(exchange: ExchangeType, asset: TradeAsset, interval: KLineInterval) {
         guard let name = asset.gateIOName else { return }
 
-        gateWS.fetchHistoricalKLines(symbol: name, interval: interval, limit: 500) { [weak self] historicalCandles in
+        gateWS?.fetchHistoricalKLines(symbol: name, interval: interval, limit: 500) { [weak self] historicalCandles in
             guard let self = self else { return }
-
             DispatchQueue.main.async {
                 if historicalCandles.isEmpty {
                     self.errorMessage = "历史数据加载失败"
@@ -168,7 +199,6 @@ class DataPipeline: ObservableObject {
                 self.latestPrice = historicalCandles.last?.close ?? 0
                 self.lastUpdateTime = Date()
                 self.isLoading = false
-
                 self.indicatorEngine.computeAll(candles: historicalCandles, asset: asset)
             }
         }

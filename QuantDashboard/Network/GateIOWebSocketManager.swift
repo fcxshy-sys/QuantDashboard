@@ -1,6 +1,6 @@
 // ============================================================
 // GateIOWebSocketManager.swift
-// QuantDashboard - Gate.io WebSocket 实时行情引擎
+// QuantDashboard - Gate.io WebSocket 实时行情引擎 — Crash-safe 重构版
 // ============================================================
 
 import Foundation
@@ -23,6 +23,7 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
     private var currentStreams: [String] = []
     private var reconnectAttempts = 0
     private let maxReconnectAttempts = 10
+    private var isReconnecting = false
 
     private let baseWSSURL = "wss://api.gateio.ws/ws/"
     private let baseRESTURL = "https://api.gateio.ws/api/v4"
@@ -32,24 +33,70 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
         let pair: String
     }
 
+    override init() {
+        super.init()
+    }
+
+    deinit {
+        cleanup()
+    }
+
+    // MARK: - Safe Cleanup
+    private func cleanup() {
+        webSocket?.cancel(with: .goingAway, reason: nil)
+        webSocket = nil
+        session?.invalidateAndCancel()
+        session = nil
+        if Thread.isMainThread {
+            heartbeatTimer?.invalidate()
+            heartbeatTimer = nil
+            reconnectTimer?.invalidate()
+            reconnectTimer = nil
+        } else {
+            DispatchQueue.main.async { [self] in
+                self.heartbeatTimer?.invalidate()
+                self.heartbeatTimer = nil
+                self.reconnectTimer?.invalidate()
+                self.reconnectTimer = nil
+            }
+        }
+    }
+
+    // MARK: - Connect
     func connect(streams: [String]) {
         currentStreams = streams
-        resetConnection()
 
+        // Disconnect old connection safely
+        webSocket?.cancel(with: .goingAway, reason: nil)
+        webSocket = nil
+        session?.invalidateAndCancel()
+        session = nil
+        DispatchQueue.main.async {
+            self.heartbeatTimer?.invalidate()
+            self.heartbeatTimer = nil
+            self.reconnectTimer?.invalidate()
+            self.reconnectTimer = nil
+            self.isReconnecting = false
+        }
+
+        // Create session on current thread
         let config = URLSessionConfiguration.default
-        config.waitsForConnectivity = true
-        config.timeoutIntervalForRequest = 30
+        config.waitsForConnectivity = false
+        config.timeoutIntervalForRequest = 10
+        config.timeoutIntervalForResource = 30
         session = URLSession(configuration: config, delegate: self, delegateQueue: OperationQueue())
 
         guard let url = URL(string: baseWSSURL) else { return }
         webSocket = session?.webSocketTask(with: url)
         webSocket?.resume()
 
-        startHeartbeat()
-        reconnectAttempts = 0
+        DispatchQueue.main.async {
+            self.startHeartbeat()
+            self.reconnectAttempts = 0
+        }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.subscribeStreams(streams)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            self?.subscribeStreams(streams)
         }
     }
 
@@ -58,23 +105,13 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
         webSocket = nil
         session?.invalidateAndCancel()
         session = nil
-        heartbeatTimer?.invalidate()
-        heartbeatTimer = nil
-        reconnectTimer?.invalidate()
-        reconnectTimer = nil
-        isConnected = false
-    }
-
-    private func resetConnection() {
-        webSocket?.cancel(with: .goingAway, reason: nil)
-        webSocket = nil
-        session?.invalidateAndCancel()
-        session = nil
-        heartbeatTimer?.invalidate()
-        heartbeatTimer = nil
-        reconnectTimer?.invalidate()
-        reconnectTimer = nil
-        isReconnecting = false
+        DispatchQueue.main.async {
+            self.heartbeatTimer?.invalidate()
+            self.heartbeatTimer = nil
+            self.reconnectTimer?.invalidate()
+            self.reconnectTimer = nil
+            self.isConnected = false
+        }
     }
 
     func switchStreams(_ streams: [String]) {
@@ -82,6 +119,7 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
         connect(streams: streams)
     }
 
+    // MARK: - Stream Parsing
     private func parseStream(_ stream: String) -> StreamInfo? {
         let parts = stream.split(separator: "_")
         guard parts.count >= 2 else { return nil }
@@ -115,6 +153,7 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
         }
     }
 
+    // MARK: - Heartbeat
     private func startHeartbeat() {
         heartbeatTimer?.invalidate()
         heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
@@ -125,10 +164,13 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
     private func sendPing() {
         let msg = URLSessionWebSocketTask.Message.string("{\"time\":\(Int(Date().timeIntervalSince1970)),\"channel\":\"spot.ping\",\"payload\":[]}")
         webSocket?.send(msg) { [weak self] error in
-            if error != nil { self?.handleDisconnect() }
+            if error != nil {
+                self?.handleDisconnect()
+            }
         }
     }
 
+    // MARK: - Receive
     private func receiveMessages() {
         webSocket?.receive { [weak self] result in
             guard let self = self else { return }
@@ -142,6 +184,7 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
         }
     }
 
+    // MARK: - Message Handling
     private func handleMessage(_ message: URLSessionWebSocketTask.Message) {
         guard case .string(let text) = message,
               let data = text.data(using: .utf8),
@@ -221,7 +264,7 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
         let volStr = "\(result["base_volume_24h"] ?? "0")"
         let pctStr = "\(result["change_percentage"] ?? "0")"
 
-        guard let last = Double(lastStr) else { return }
+        guard let last = Double(lastStr), last > 0 else { return }
         let high24 = Double(highStr) ?? 0
         let low24 = Double(lowStr) ?? 0
         let vol24 = Double(volStr) ?? 0
@@ -241,8 +284,7 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
         }
     }
 
-    private var isReconnecting = false
-
+    // MARK: - Disconnect Handling
     private func handleDisconnect() {
         DispatchQueue.main.async {
             self.isConnected = false
@@ -254,8 +296,10 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
             self.reconnectAttempts += 1
 
             self.reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
-                self?.isReconnecting = false
-                self?.connect(streams: self?.currentStreams ?? [])
+                guard let self = self else { return }
+                self.isReconnecting = false
+                guard !self.currentStreams.isEmpty else { return }
+                self.connect(streams: self.currentStreams)
             }
         }
     }

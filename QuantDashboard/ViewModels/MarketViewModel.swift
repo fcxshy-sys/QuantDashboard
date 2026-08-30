@@ -1,13 +1,12 @@
 // ============================================================
 // MarketViewModel.swift
-// QuantDashboard - 行情视图模型
+// QuantDashboard - 行情视图模型 — Crash-safe 重构版
 // ============================================================
 
 import Foundation
 import Combine
 
 // MARK: - 行情视图模型
-/// 管理行情数据状态、资产切换、价格更新
 class MarketViewModel: ObservableObject {
 
     // MARK: - Published 状态
@@ -30,6 +29,7 @@ class MarketViewModel: ObservableObject {
     private let dataPipeline = DataPipeline.shared
     private let indicatorEngine = IndicatorEngine.shared
     private var cancellables = Set<AnyCancellable>()
+    private var hasStarted = false
 
     // MARK: - 初始化
     init() {
@@ -38,22 +38,18 @@ class MarketViewModel: ObservableObject {
 
     // MARK: - 绑定数据管道
     private func setupBindings() {
-        // 绑定价格
         dataPipeline.$latestPrice
             .receive(on: DispatchQueue.main)
             .assign(to: &$latestPrice)
 
-        // 绑定 K 线
         dataPipeline.$candles
             .receive(on: DispatchQueue.main)
             .assign(to: &$candles)
 
-        // 绑定连接状态
         dataPipeline.$connectionStatus
             .receive(on: DispatchQueue.main)
             .assign(to: &$connectionStatus)
 
-        // 绑定 Ticker
         dataPipeline.$ticker24h
             .receive(on: DispatchQueue.main)
             .sink { [weak self] ticker in
@@ -66,23 +62,34 @@ class MarketViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // 绑定更新时间
         dataPipeline.$lastUpdateTime
             .receive(on: DispatchQueue.main)
             .assign(to: &$lastUpdateTime)
 
-        // 绑定加载状态
         dataPipeline.$isLoading
             .receive(on: DispatchQueue.main)
             .assign(to: &$isLoading)
 
-        // 绑定错误信息
         dataPipeline.$errorMessage
             .receive(on: DispatchQueue.main)
             .assign(to: &$errorMessage)
+    }
 
-        // 绑定延迟
-        // BinanceWS 延迟通过 Binding 传递（此处简化）
+    // MARK: - 启动数据流（延迟启动）
+    func start() {
+        guard !hasStarted else { return }
+        hasStarted = true
+        // Delay 0.5s to let SwiftUI finish rendering
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self = self else { return }
+            self.dataPipeline.start(for: self.currentAsset, interval: self.currentInterval)
+        }
+    }
+
+    // MARK: - 停止数据流
+    func stop() {
+        dataPipeline.stopAll()
+        hasStarted = false
     }
 
     // MARK: - 切换资产
@@ -97,17 +104,7 @@ class MarketViewModel: ObservableObject {
         dataPipeline.switchInterval(to: interval)
     }
 
-    // MARK: - 启动数据流
-    func start() {
-        dataPipeline.start(for: currentAsset, interval: currentInterval)
-    }
-
-    // MARK: - 停止数据流
-    func stop() {
-        dataPipeline.stopAll()
-    }
-
-    // MARK: - 格式化价格显示
+    // MARK: - 格式化
     var formattedPrice: String {
         if latestPrice >= 10000 {
             return String(format: "$%.2f", latestPrice)
