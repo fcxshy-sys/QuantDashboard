@@ -184,10 +184,19 @@ struct IndicatorPanelCard: View {
             }
 
             // 参数信息
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 paramItem(label: "信号", value: direction.rawValue)
                 paramItem(label: "强度", value: result?.strength.displayName ?? "-")
-                paramItem(label: "值", value: String(format: "%.2f", result?.value ?? 0))
+                paramItem(label: "值", value: String(format: "%.4f", result?.value ?? 0))
+            }
+            if let sec = result?.secondaryValue {
+                HStack(spacing: 12) {
+                    paramItem(label: "辅助值", value: String(format: "%.4f", sec))
+                    if let ter = result?.tertiaryValue {
+                        paramItem(label: "第三值", value: String(format: "%.4f", ter))
+                    }
+                    paramItem(label: "时间", value: result?.timestamp.formatted(date: .omitted, time: .shortened) ?? "-")
+                }
             }
         }
     }
