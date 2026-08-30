@@ -31,9 +31,8 @@ class DailySnapshotService: ObservableObject {
     
     private func checkAndSnapshot() {
         let cal = Calendar.current
-        guard let last = lastSnapshotDate, cal.isDate(last, inSameDayAs: Date()) else {
-            lastSnapshotDate = Date()
-            defaults.set(lastSnapshotDate, forKey: "last_snapshot_date")
-        }
+        if let last = lastSnapshotDate, cal.isDate(last, inSameDayAs: Date()) { return }
+        lastSnapshotDate = Date()
+        defaults.set(lastSnapshotDate, forKey: "last_snapshot_date")
     }
 }
