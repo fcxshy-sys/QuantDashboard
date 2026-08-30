@@ -100,10 +100,8 @@
 		B20004 /* IndicatorEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorEngine.swift; sourceTree = "<group>"; };
 
 		/* Network */
-		B30001 /* BinanceWebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BinanceWebSocketManager.swift; sourceTree = "<group>"; };
 		B30002 /* GoldDataProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoldDataProvider.swift; sourceTree = "<group>"; };
 		B30003 /* DataPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataPipeline.swift; sourceTree = "<group>"; };
-		B30004 /* BitgetWebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BitgetWebSocketManager.swift; sourceTree = "<group>"; };
 		B30005 /* GateIOWebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GateIOWebSocketManager.swift; sourceTree = "<group>"; };
 
 		/* Services */
@@ -254,10 +252,8 @@
 		D10013 /* Network */ = {
 			isa = PBXGroup;
 			children = (
-				B30001 /* BinanceWebSocketManager.swift */,
 				B30002 /* GoldDataProvider.swift */,
 				B30003 /* DataPipeline.swift */,
-				B30004 /* BitgetWebSocketManager.swift */,
 				B30005 /* GateIOWebSocketManager.swift */,
 			);
 			path = Network;
