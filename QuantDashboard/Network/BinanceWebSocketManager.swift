@@ -90,7 +90,9 @@ class BinanceWebSocketManager: NSObject, ObservableObject {
         let pingMessage = URLSessionWebSocketTask.Message.string("{\"ping\": \(Int(Date().timeIntervalSince1970 * 1000))}")
         webSocket?.send(pingMessage) { [weak self] error in
             if let error = error {
+#if DEBUG
                 print("[BinanceWS] Ping 发送失败: \(error.localizedDescription)")
+#endif
                 self?.handleDisconnect()
             }
         }
@@ -126,7 +128,9 @@ class BinanceWebSocketManager: NSObject, ObservableObject {
                 self.handleMessage(message)
                 self.receiveMessages()  // 继续接收下一条
             case .failure(let error):
+#if DEBUG
                 print("[BinanceWS] 接收错误: \(error.localizedDescription)")
+#endif
                 self.handleDisconnect()
             }
         }
@@ -156,7 +160,9 @@ class BinanceWebSocketManager: NSObject, ObservableObject {
             }
             // 处理订阅确认等
             else if let stream = json["stream"] as? String {
+#if DEBUG
                 print("[BinanceWS] 订阅确认: \(stream)")
+#endif
             }
 
         case .data(let data):
@@ -263,14 +269,18 @@ class BinanceWebSocketManager: NSObject, ObservableObject {
         pingTimer?.invalidate()
 
         guard reconnectAttempts < maxReconnectAttempts else {
+#if DEBUG
             print("[BinanceWS] 超过最大重连次数，停止重连")
+#endif
             return
         }
 
         let delay = min(pow(2.0, Double(reconnectAttempts)), 30)
         reconnectAttempts += 1
 
+#if DEBUG
         print("[BinanceWS] \(delay)秒后重连 (第\(reconnectAttempts)次)")
+#endif
         reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
             guard let self = self else { return }
             self.connect(streams: self.currentStreams)
@@ -282,7 +292,9 @@ class BinanceWebSocketManager: NSObject, ObservableObject {
 extension BinanceWebSocketManager: URLSessionWebSocketDelegate {
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask,
                     didOpenWithProtocol protocol: String?) {
+#if DEBUG
         print("[BinanceWS] 连接成功")
+#endif
         DispatchQueue.main.async {
             self.isConnected = true
             self.reconnectAttempts = 0
@@ -292,7 +304,9 @@ extension BinanceWebSocketManager: URLSessionWebSocketDelegate {
 
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask,
                     didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+#if DEBUG
         print("[BinanceWS] 连接关闭: \(closeCode.rawValue)")
+#endif
         handleDisconnect()
     }
 }
@@ -317,7 +331,9 @@ extension BinanceWebSocketManager {
                   let jsonArray = try? JSONSerialization.jsonObject(with: data) as? [[Any]],
                   !jsonArray.isEmpty
             else {
+#if DEBUG
                 print("[BinanceWS] 历史K线加载失败，使用模拟数据")
+#endif
                 completion(self.generateFallbackCandles(symbol: symbol, interval: interval, count: limit))
                 return
             }

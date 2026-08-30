@@ -30,9 +30,13 @@ class LocalAlertManager: NSObject {
             options: [.alert, .sound, .badge, .criticalAlert]
         ) { granted, error in
             if let error = error {
+                #if DEBUG
                 print("[Alert] 通知权限申请失败: \(error.localizedDescription)")
+                #endif
             }
+            #if DEBUG
             print("[Alert] 通知权限: \(granted ? "已授予" : "被拒绝")")
+            #endif
         }
     }
 
@@ -69,7 +73,9 @@ class LocalAlertManager: NSObject {
         do {
             hapticEngine = try CHHapticEngine()
             hapticEngine?.stoppedHandler = { [weak self] reason in
+                #if DEBUG
                 print("[Haptic] 引擎停止: \(reason.rawValue)")
+                #endif
                 self?.restartHapticEngine()
             }
             hapticEngine?.resetHandler = { [weak self] in
@@ -77,7 +83,9 @@ class LocalAlertManager: NSObject {
             }
             try hapticEngine?.start()
         } catch {
+            #if DEBUG
             print("[Haptic] 引擎启动失败: \(error.localizedDescription)")
+            #endif
         }
     }
 
@@ -85,7 +93,9 @@ class LocalAlertManager: NSObject {
         do {
             try hapticEngine?.start()
         } catch {
+            #if DEBUG
             print("[Haptic] 引擎重启失败: \(error.localizedDescription)")
+            #endif
         }
     }
 
@@ -124,7 +134,9 @@ class LocalAlertManager: NSObject {
 
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
+                #if DEBUG
                 print("[Alert] 通知发送失败: \(error.localizedDescription)")
+                #endif
             }
         }
     }
@@ -163,7 +175,9 @@ class LocalAlertManager: NSObject {
             let player = try hapticEngine?.makePlayer(with: pattern)
             try player?.start(atTime: CHHapticTimeImmediate)
         } catch {
+            #if DEBUG
             print("[Haptic] 播放失败: \(error.localizedDescription)")
+            #endif
         }
     }
 
@@ -190,7 +204,9 @@ class LocalAlertManager: NSObject {
             let player = try hapticEngine?.makePlayer(with: pattern)
             try player?.start(atTime: CHHapticTimeImmediate)
         } catch {
+            #if DEBUG
             print("[Haptic] 共振触感失败: \(error.localizedDescription)")
+            #endif
         }
     }
 }
@@ -212,9 +228,13 @@ extension LocalAlertManager: UNUserNotificationCenterDelegate {
 
         switch actionIdentifier {
         case "VIEW_DETAILS":
+            #if DEBUG
             print("[Alert] 用户点击查看详情: \(userInfo)")
+            #endif
         case "DISMISS":
+            #if DEBUG
             print("[Alert] 用户忽略告警")
+            #endif
         default:
             break
         }

@@ -86,7 +86,9 @@ class BitgetWebSocketManager: NSObject, ObservableObject {
                   let str = String(data: data, encoding: .utf8) else { continue }
             webSocket?.send(.string(str)) { error in
                 if let error = error {
+                    #if DEBUG
                     print("[BitgetWS] 订阅失败: \(error.localizedDescription)")
+                    #endif
                 }
             }
         }
@@ -125,7 +127,11 @@ class BitgetWebSocketManager: NSObject, ObservableObject {
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
 
         if let event = json["event"] as? String {
-            if event == "subscribe" { print("[BitgetWS] 订阅确认") }
+            if event == "subscribe" {
+                #if DEBUG
+                print("[BitgetWS] 订阅确认")
+                #endif
+            }
             return
         }
 
@@ -237,7 +243,9 @@ class BitgetWebSocketManager: NSObject, ObservableObject {
 extension BitgetWebSocketManager: URLSessionWebSocketDelegate {
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask,
                     didOpenWithProtocol protocol: String?) {
+        #if DEBUG
         print("[BitgetWS] 连接成功")
+        #endif
         DispatchQueue.main.async { self.isConnected = true; self.reconnectAttempts = 0 }
         receiveMessages()
     }

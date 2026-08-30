@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct SnapshotView: View {
     @StateObject private var snapshotService = DailySnapshotService.shared

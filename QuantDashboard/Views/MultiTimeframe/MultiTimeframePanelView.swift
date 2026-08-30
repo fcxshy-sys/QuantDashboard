@@ -14,7 +14,7 @@ struct MultiTimeframePanelView: View {
                         .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(LiquidGlassTheme.primaryText)
                     Spacer()
-                    Text("\(marketVM.currentAsset.rawValue)")
+                    Text(marketVM.currentAsset.rawValue)
                         .font(.system(size: 12))
                         .foregroundStyle(LiquidGlassTheme.tertiaryText)
                 }
@@ -28,7 +28,7 @@ struct MultiTimeframePanelView: View {
                                     Text(tf.displayName)
                                         .font(.system(size: 9))
                                         .foregroundStyle(LiquidGlassTheme.tertiaryText)
-                                    signalBadge(for: tf)
+                                    signalBadge(for: tf, indicatorIndex: index)
                                 }
                                 .frame(maxWidth: .infinity)
                             }
@@ -37,7 +37,7 @@ struct MultiTimeframePanelView: View {
                     }
                 }
                 
-               共振统计卡片
+                resonanceCard
             }
             .padding(.horizontal, 16)
             .padding(.top, 8)
@@ -46,21 +46,24 @@ struct MultiTimeframePanelView: View {
     }
     
     @ViewBuilder
-    private func signalBadge(for interval: KLineInterval) -> some View {
-        let score = simulateMFScore(for: interval, index: 0)
-        if score > 30 {
+    private func signalBadge(for interval: KLineInterval, indicatorIndex: Int) -> some View {
+        let result = indicatorVM.result(for: indicatorIndex)
+        let direction = result?.signal ?? .neutral
+        
+        switch direction {
+        case .bullish:
             Text("多")
                 .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(LiquidGlassTheme.bullishAccent)
                 .frame(width: 32, height: 22)
                 .background(Capsule().fill(LiquidGlassTheme.bullishAccent.opacity(0.15)))
-        } else if score < -30 {
+        case .bearish:
             Text("空")
                 .font(.system(size: 11, weight: .bold))
                 .foregroundStyle(LiquidGlassTheme.bearishAccent)
                 .frame(width: 32, height: 22)
                 .background(Capsule().fill(LiquidGlassTheme.bearishAccent.opacity(0.15)))
-        } else {
+        case .neutral:
             Text("中")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(LiquidGlassTheme.neutralAccent)
@@ -69,21 +72,50 @@ struct MultiTimeframePanelView: View {
         }
     }
     
-    private func simulateMFScore(for interval: KLineInterval, index: Int) -> Double {
-        let ratio = Double(arc4random_uniform(100)) / 100.0
-        return (ratio - 0.5) * 200
-    }
-    
-    private var 共振统计卡片: some View {
+    private var resonanceCard: some View {
         GlassCard(title: "多周期共振", icon: "arrow.triangle.2.circlepath") {
             VStack(spacing: 8) {
                 HStack(spacing: 12) {
-                    resonanceStat(label: "多头共振", count: 2, color: LiquidGlassTheme.bullishAccent)
-                    resonanceStat(label: "空头共振", count: 1, color: LiquidGlassTheme.bearishAccent)
-                    resonanceStat(label: "无共振", count: 2, color: LiquidGlassTheme.neutralAccent)
+                    resonanceStat(label: "多头共振", count: bullishCount, color: LiquidGlassTheme.bullishAccent)
+                    resonanceStat(label: "空头共振", count: bearishCount, color: LiquidGlassTheme.bearishAccent)
+                    resonanceStat(label: "无共振", count: neutralCount, color: LiquidGlassTheme.neutralAccent)
                 }
+                
+                let total = 5
+                if bullishCount >= 3 || bearishCount >= 3 {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(bullishCount >= 3 ? LiquidGlassTheme.bullishAccent : LiquidGlassTheme.bearishAccent)
+                        Text(bullishCount >= 3 ? "强多头共振信号" : "强空头共振信号")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(bullishCount >= 3 ? LiquidGlassTheme.bullishAccent : LiquidGlassTheme.bearishAccent)
+                    }
+                    .padding(.vertical, 4)
+                }
+                
+                Text("共振度 \(resonancePercent)%")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(LiquidGlassTheme.tertiaryText)
             }
         }
+    }
+    
+    private var bullishCount: Int {
+        (1...5).filter { indicatorVM.result(for: $0)?.signal == .bullish }.count
+    }
+    
+    private var bearishCount: Int {
+        (1...5).filter { indicatorVM.result(for: $0)?.signal == .bearish }.count
+    }
+    
+    private var neutralCount: Int {
+        (1...5).filter { indicatorVM.result(for: $0)?.signal == .neutral }.count
+    }
+    
+    private var resonancePercent: Int {
+        let dominant = max(bullishCount, bearishCount, neutralCount)
+        return dominant * 20
     }
     
     private func resonanceStat(label: String, count: Int, color: Color) -> some View {
