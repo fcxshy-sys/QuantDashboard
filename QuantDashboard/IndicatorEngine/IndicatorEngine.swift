@@ -47,10 +47,6 @@ class IndicatorEngine: ObservableObject {
             guard let self = self else { return }
             let computeCandles = candles
 
-            self.indicatorLock.lock()
-            let snapshot = self.indicators.map { ($0.index, $0.config.isEnabled) }
-            self.indicatorLock.unlock()
-
             var newResults: [Int: IndicatorResult] = [:]
             var newTimeSeries: [Int: [IndicatorTimePoint]] = [:]
 

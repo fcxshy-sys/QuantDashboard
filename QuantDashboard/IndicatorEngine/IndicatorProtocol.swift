@@ -50,11 +50,13 @@ class IndicatorBase: IndicatorProtocol {
     }
 
     func calculate(candles: [CandleData]) -> [IndicatorTimePoint] {
-        fatalError("子类必须重写 calculate 方法")
+        return []
     }
 
     func generateSignal(candles: [CandleData]) -> IndicatorResult {
-        fatalError("子类必须重写 generateSignal 方法")
+        return IndicatorResult(indicatorName: name, indicatorIndex: index,
+                               value: 0, signal: .neutral, strength: .weak,
+                               description: "未实现")
     }
 
     // MARK: - 通用计算工具方法
