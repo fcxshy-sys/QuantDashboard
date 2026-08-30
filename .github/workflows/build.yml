@@ -24,8 +24,7 @@ jobs:
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \
-            CODE_SIGN_ENTITLEMENTS="" \
-            PRODUCT_BUNDLE_IDENTIFIER=com.quant.dashboard
+            CODE_SIGN_ENTITLEMENTS=""
 
       - name: Package IPA
         run: |

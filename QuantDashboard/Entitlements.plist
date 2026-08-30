@@ -2,12 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- 网络访问 -->
     <key>com.apple.security.network.client</key>
     <true/>
-
-    <!-- TrollStore: 禁用沙盒 -->
-    <key>com.apple.private.security.no-sandbox</key>
-    <true/>
+    <key>com.opa334.TrollStore</key>
+    <dict>
+        <key>persistent</key>
+        <true/>
+    </dict>
 </dict>
 </plist>
