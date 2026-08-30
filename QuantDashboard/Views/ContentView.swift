@@ -21,7 +21,8 @@ struct ContentView: View {
         case settings = "设置"
     }
 
-    enum ToolType: String, CaseIterable {
+    enum ToolType: String, CaseIterable, Identifiable {
+        var id: String { rawValue }
         case multiTimeframe = "多周期联动"
         case ranking = "排行榜"
         case priceAlerts = "价格预警"

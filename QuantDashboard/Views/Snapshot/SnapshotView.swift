@@ -48,7 +48,7 @@ struct SnapshotView: View {
                                     Text(snap.date.formatted(date: .abbreviated, time: .shortened))
                                         .font(.system(size: 11))
                                         .foregroundStyle(LiquidGlassTheme.secondaryText)
-                                    Text(snap.asset.rawValue)
+                                    Text(snap.asset)
                                         .font(.system(size: 12, weight: .semibold))
                                         .foregroundStyle(LiquidGlassTheme.primaryText)
                                 }
