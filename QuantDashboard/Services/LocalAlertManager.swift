@@ -103,7 +103,7 @@ class LocalAlertManager: NSObject {
         let content = UNMutableNotificationContent()
         content.title = "⚡ \(event.asset.shortName) \(event.direction.rawValue)信号"
         content.body = event.message
-        content.sound = UNNotificationSound.defaultCritical
+        content.sound = UNNotificationSound.default
         content.categoryIdentifier = "INDICATOR_ALERT"
         content.badge = 1
 

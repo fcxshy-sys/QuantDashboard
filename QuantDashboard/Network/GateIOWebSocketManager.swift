@@ -227,6 +227,8 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
         }
     }
 
+    private var isReconnecting = false
+
     private func handleDisconnect() {
         DispatchQueue.main.async {
             self.isConnected = false
@@ -234,11 +236,13 @@ class GateIOWebSocketManager: NSObject, ObservableObject {
         }
         heartbeatTimer?.invalidate()
 
-        guard reconnectAttempts < maxReconnectAttempts else { return }
+        guard reconnectAttempts < maxReconnectAttempts, !isReconnecting else { return }
+        isReconnecting = true
         let delay = min(pow(2.0, Double(reconnectAttempts)), 30)
         reconnectAttempts += 1
 
         reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
+            self?.isReconnecting = false
             self?.connect(streams: self?.currentStreams ?? [])
         }
     }

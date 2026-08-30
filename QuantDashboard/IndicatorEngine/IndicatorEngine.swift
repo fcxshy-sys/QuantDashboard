@@ -40,27 +40,31 @@ class IndicatorEngine: ObservableObject {
     func computeAll(candles: [CandleData], asset: TradeAsset) {
         guard !candles.isEmpty else { return }
 
-        var newResults: [Int: IndicatorResult] = [:]
-        var newTimeSeries: [Int: [IndicatorTimePoint]] = [:]
+        let computeCandles = candles
 
-        for indicator in indicators {
-            guard indicator.config.isEnabled else { continue }
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
 
-            let series = indicator.calculate(candles: candles)
-            let signal = indicator.generateSignal(candles: candles)
+            var newResults: [Int: IndicatorResult] = [:]
+            var newTimeSeries: [Int: [IndicatorTimePoint]] = [:]
 
-            newResults[indicator.index] = signal
-            newTimeSeries[indicator.index] = series
-        }
+            for indicator in self.indicators {
+                guard indicator.config.isEnabled else { continue }
 
-        // 计算雷达综合评分
-        let radar = radarEngine.evaluate(candles: candles, asset: asset)
+                let series = indicator.calculate(candles: computeCandles)
+                let signal = indicator.generateSignal(candles: computeCandles)
 
-        // 更新到主线程
-        DispatchQueue.main.async { [weak self] in
-            self?.latestResults = newResults
-            self?.timeSeries = newTimeSeries
-            self?.radarScore = radar
+                newResults[indicator.index] = signal
+                newTimeSeries[indicator.index] = series
+            }
+
+            let radar = self.radarEngine.evaluate(candles: computeCandles, asset: asset)
+
+            DispatchQueue.main.async { [weak self] in
+                self?.latestResults = newResults
+                self?.timeSeries = newTimeSeries
+                self?.radarScore = radar
+            }
         }
     }
 
